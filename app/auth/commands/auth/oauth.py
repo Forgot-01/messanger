@@ -126,7 +126,7 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
                 await self.oauth_repository.create(oauth_account)
 
             session = await self.session_manager.get_or_create_session(
-                user_id=user_id, user_agent=command.user_agent, ip_address=command.ip_address
+                user_id=user_id, user_agent=command.user_agent
             )
             await self.oauth_code_repository.delete(command.state)
             await self.event_bus.publish(session.pull_events())

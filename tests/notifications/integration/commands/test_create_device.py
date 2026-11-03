@@ -10,7 +10,6 @@ from app.notifications.commands.devices.create import (
     CreateUserDeviceCommandHandler,
 )
 from app.notifications.exceptions import AlreadyExistDeviceTokenError
-from app.notifications.models.device import PlatformEnum
 from app.notifications.repositories.devices import DeviceRepository
 
 
@@ -34,7 +33,7 @@ class TestCreateUserDeviceCommand:
         await handler.handle(
             CreateUserDeviceCommand(
                 token="fcm-token-1",
-                platform=PlatformEnum.android,
+                platform="PlatformEnum.android",
                 device_name="Pixel 8",
                 user_jwt_data=user_jwt,
             )
@@ -43,23 +42,23 @@ class TestCreateUserDeviceCommand:
         devices = await device_repository.get_active_by_user_id(int(user_jwt.id))
         assert len(devices) == 1
         assert devices[0].token == "fcm-token-1"
-        assert devices[0].platform == PlatformEnum.android
+        assert devices[0].platform == "PlatformEnum.android"
         assert devices[0].device_name == "Pixel 8"
         assert devices[0].is_active is True
 
     @pytest.mark.parametrize(
-        "platform", [PlatformEnum.android, PlatformEnum.ios, PlatformEnum.web]
+        "platform", ["PlatformEnum.android", "PlatformEnum.ios", "PlatformEnum.web"]
     )
     async def test_every_platform_is_accepted(
         self,
         handler: CreateUserDeviceCommandHandler,
         device_repository: DeviceRepository,
         user_jwt: UserJWTData,
-        platform: PlatformEnum,
+        platform: str,
     ) -> None:
         await handler.handle(
             CreateUserDeviceCommand(
-                token=f"token-{platform.value}",
+                token=f"token-{platform}",
                 platform=platform,
                 device_name="Устройство",
                 user_jwt_data=user_jwt,
@@ -80,7 +79,7 @@ class TestCreateUserDeviceCommand:
             await handler.handle(
                 CreateUserDeviceCommand(
                     token=f"fcm-token-{i}",
-                    platform=PlatformEnum.web,
+                    platform="PlatformEnum.web",
                     device_name=f"Браузер {i}",
                     user_jwt_data=user_jwt,
                 )
@@ -97,7 +96,7 @@ class TestCreateUserDeviceCommand:
     ) -> None:
         command = CreateUserDeviceCommand(
             token="fcm-duplicate",
-            platform=PlatformEnum.ios,
+            platform="PlatformEnum.ios",
             device_name="iPhone",
             user_jwt_data=user_jwt,
         )
@@ -118,7 +117,7 @@ class TestCreateUserDeviceCommand:
     ) -> None:
         command = CreateUserDeviceCommand(
             token="fcm-revived",
-            platform=PlatformEnum.web,
+            platform="PlatformEnum.web",
             device_name="Браузер",
             user_jwt_data=user_jwt,
         )
@@ -144,7 +143,7 @@ class TestCreateUserDeviceCommand:
     ) -> None:
         command = CreateUserDeviceCommand(
             token="fcm-same-row",
-            platform=PlatformEnum.ios,
+            platform="PlatformEnum.ios",
             device_name="iPhone",
             user_jwt_data=user_jwt,
         )

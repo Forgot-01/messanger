@@ -48,7 +48,7 @@ class LoginCommandHandler(BaseCommandHandler[LoginCommand, TokenGroup]):
             raise WrongLoginDataError(username=command.username)
 
         session = await self.session_manager.get_or_create_session(
-            user_id=user.id, user_agent=command.user_agent, ip_address=command.ip_address
+            user_id=user.id, user_agent=command.user_agent
         )
 
         await self.event_bus.publish(session.pull_events())

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Index, LargeBinary, String, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db.base_model import BaseModel
@@ -58,14 +58,11 @@ class Session(BaseModel):
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-
     device_id: Mapped[str] = mapped_column(String, index=True, nullable=False)
-    device_info: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
-    user_agent: Mapped[str] = mapped_column(String, nullable=False)
-    ip_address: Mapped[str] = mapped_column(String, nullable=False)
 
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="sessions")
 
@@ -79,17 +76,10 @@ class Session(BaseModel):
         cls,
         user_id: int,
         device_id: str,
-        ip_address: str,
-        device_info: bytes,
-        user_agent: str,
     ) -> Self:
         instance = cls(
             user_id=user_id,
             device_id=device_id,
-            device_info=device_info,
-            user_agent=user_agent,
-            ip_address=ip_address,
-            is_active=True
         )
 
         instance.register_event(
@@ -101,7 +91,7 @@ class Session(BaseModel):
         return instance
 
     def deactivate(self) -> None:
-        self.is_active = False
+        self.revoked_at = now_utc()
         self.last_activity = now_utc()
         self.register_event(
             DeactivateSessionEvent(
@@ -112,3 +102,7 @@ class Session(BaseModel):
 
     def online(self) -> None:
         self.last_activity = now_utc()
+
+    @property
+    def is_active(self) -> bool:
+        return self.revoked_at <= now_utc() if self.revoked_at else True

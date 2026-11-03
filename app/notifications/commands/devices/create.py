@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.commands import BaseCommand, BaseCommandHandler
 from app.core.services.auth.dto import UserJWTData
 from app.notifications.exceptions import AlreadyExistDeviceTokenError
-from app.notifications.models.device import PlatformEnum, UserDeviceToken
+from app.notifications.models.device import UserDeviceToken
 from app.notifications.repositories.devices import DeviceRepository
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class CreateUserDeviceCommand(BaseCommand):
-    platform: PlatformEnum
+    platform: str
     token: str
     device_name: str
 
