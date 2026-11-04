@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, Self
+from uuid import UUID, uuid7
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import UUID as SA_UUID, BigInteger, DateTime, ForeignKey, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import INET, JSONB
 
 from app.core.db.base_model import BaseModel
 from app.core.events.event import BaseEvent
@@ -58,7 +60,10 @@ class Session(BaseModel):
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    device_id: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    device_id: Mapped[UUID] = mapped_column(SA_UUID(as_uuid=True), index=True, nullable=False)
+
+    ip_address: Mapped[str] = mapped_column(INET, nullable=True)
+    user_agent: Mapped[str] = mapped_column(String, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
@@ -75,17 +80,22 @@ class Session(BaseModel):
     def create(
         cls,
         user_id: int,
-        device_id: str,
+        device_id: UUID,
+        ip_address: str,
+        user_agent: str,
     ) -> Self:
         instance = cls(
             user_id=user_id,
             device_id=device_id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            revoked_at=None,
         )
 
         instance.register_event(
             NewSessionEvent(
                 user_id=user_id,
-                device_id=device_id
+                device_id=str(device_id)
             )
         )
         return instance
@@ -96,7 +106,7 @@ class Session(BaseModel):
         self.register_event(
             DeactivateSessionEvent(
                 user_id=self.user_id,
-                device_id=self.device_id
+                device_id=str(self.device_id)
             )
         )
 
@@ -105,4 +115,5 @@ class Session(BaseModel):
 
     @property
     def is_active(self) -> bool:
-        return self.revoked_at <= now_utc() if self.revoked_at else True
+        return self.revoked_at >= now_utc() if self.revoked_at else True
+

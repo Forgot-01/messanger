@@ -1,4 +1,7 @@
+import base64
 from dataclasses import dataclass, field
+import hashlib
+import secrets
 
 from app.auth.dtos.tokens import OAuthData
 from app.auth.exceptions import NotExistProviderOAuthError, OAuthProviderUnavailableError
@@ -40,3 +43,18 @@ class OAuthManager:
             raise OAuthProviderUnavailableError(provider=provider_name) from err
 
         return oauth_user
+
+    def generate_state(self) -> str:
+        return secrets.token_urlsafe(32)
+
+    def generate_code_verifier(self) -> str:
+        return secrets.token_urlsafe(64)
+
+    def generate_code_challenge(self, verifier: str) -> str:
+        digest = hashlib.sha256(
+            verifier.encode("ascii")
+        ).digest()
+
+        return base64.urlsafe_b64encode(
+            digest
+        ).rstrip(b"=").decode("ascii")

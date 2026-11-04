@@ -9,7 +9,7 @@ from app.auth.repositories.user import UserRepository
 from app.auth.services.hash import HashService
 from app.auth.services.jwt import AuthJWTManager
 from app.auth.services.rbac import AuthRBACManager
-from app.auth.services.session import SessionManager
+from app.auth.services.session import DeviceSessionManager
 
 
 @pytest.fixture
@@ -61,5 +61,5 @@ async def rbac_manager(di_container: AsyncContainer) -> AuthRBACManager:
     return await di_container.get(AuthRBACManager)
 
 @pytest.fixture
-async def session_manager(request_container: AsyncContainer) -> SessionManager:
-    return await request_container.get(SessionManager)
+async def session_manager(request_container: AsyncContainer) -> DeviceSessionManager:
+    return await request_container.get(DeviceSessionManager)

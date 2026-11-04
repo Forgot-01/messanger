@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from uuid import UUID
 
 from redis.asyncio import Redis
 from sqlalchemy import select
@@ -17,17 +18,17 @@ class SessionRepository(IRepository[Session]):
         result = await self.session.execute(query)
         return result.scalar()
 
-    async def get_active_by_device(self, user_id: int, device_id: str) -> Session | None:
+    async def get_active_by_device(self, user_id: int, device_id: UUID) -> Session | None:
         query = select(Session).where(
             Session.user_id == user_id,
             Session.device_id == device_id,
-            Session.is_active
+            Session.revoked_at.is_(None)
         )
         result = await self.session.execute(query)
         return result.scalar()
 
     async def get_active_by_user(self, user_id: int) -> list[Session]:
-        query = select(Session).where(Session.user_id == user_id, Session.is_active.is_(True))
+        query = select(Session).where(Session.user_id == user_id, Session.revoked_at.is_(None))
         result = await self.session.execute(query)
         return list(result.scalars())
 

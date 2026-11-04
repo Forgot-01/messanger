@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import hashlib
 
 import orjson
@@ -38,3 +39,4 @@ def verify_device(
     current_device = generate_device_info(user_agent)
 
     return current_device.device_id == jwt_device_data.get("di")
+

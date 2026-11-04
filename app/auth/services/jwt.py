@@ -29,6 +29,7 @@ class AuthJWTManager(JWTManager):
             "username": user_data.username,
             "lvl": user_data.security_level,
             "did": user_data.device_id,
+            "sid": user_data.session_id,
             "jti": str(uuid4()),
             "exp": (
                 now + timedelta(minutes=auth_config.ACCESS_TOKEN_EXPIRE_MINUTES)

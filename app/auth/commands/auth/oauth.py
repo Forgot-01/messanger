@@ -21,7 +21,7 @@ from app.auth.repositories.role import RoleRepository
 from app.auth.repositories.user import UserRepository
 from app.auth.services.jwt import AuthJWTManager
 from app.auth.services.oauth_manager import OAuthManager
-from app.auth.services.session import SessionManager
+from app.auth.services.session import DeviceSessionManager
 from app.auth.services.username import UsernameGenerator
 from app.core.commands import BaseCommand, BaseCommandHandler
 from app.core.events.service import BaseEventBus
@@ -45,7 +45,7 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
     oauth_manager: OAuthManager
     user_repository: UserRepository
     role_repository: RoleRepository
-    session_manager: SessionManager
+    session_manager: DeviceSessionManager
     oauth_repository: OauthAccountRepository
     oauth_code_repository: OAuthCodeRepository
     username_generator: UsernameGenerator

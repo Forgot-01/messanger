@@ -8,7 +8,7 @@ from app.auth.config import auth_config
 from app.auth.exceptions import NotFoundOrInactiveSessionError
 from app.auth.repositories.session import SessionRepository, TokenBlacklistRepository
 from app.auth.services.jwt import AuthJWTManager
-from app.auth.services.session import SessionManager
+from app.auth.services.session import DeviceSessionManager
 from app.core.commands import BaseCommand, BaseCommandHandler
 from app.core.events.service import BaseEventBus
 from app.core.services.auth.dto import JwtTokenType
@@ -25,7 +25,7 @@ class LogoutCommand(BaseCommand):
 @dataclass(frozen=True)
 class LogoutCommandHandler(BaseCommandHandler[LogoutCommand, None]):
     session: AsyncSession
-    session_manager: SessionManager
+    session_manager: DeviceSessionManager
     jwt_manager: AuthJWTManager
     session_repository: SessionRepository
     token_blacklist: TokenBlacklistRepository

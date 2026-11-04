@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.auth.config import auth_config
 from app.auth.exceptions import InvalidUsernameError, NotFoundPermissionsError, NotFoundRoleError
+from app.auth.models.device import Device
 from app.auth.models.oauth import OAuthAccount
 from app.auth.models.session import Session
 from app.core.db.base_model import BaseModel, DateMixin, SoftDeleteMixin
@@ -97,6 +98,11 @@ class User(BaseModel, DateMixin, SoftDeleteMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 
+    devices: Mapped[list[Device]] = relationship(
+        "Device",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
     sessions: Mapped[list[Session]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",

@@ -1,7 +1,14 @@
 from typing import TYPE_CHECKING, Self
-from uuid import uuid7
+from uuid import UUID, uuid7
 
-from sqlalchemy import UUID, BigInteger, ForeignKey, Index, LargeBinary, String
+from sqlalchemy import (
+    UUID as SA_UUID,
+    BigInteger,
+    ForeignKey,
+    Index,
+    LargeBinary,
+    String,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db.base_model import BaseModel
@@ -13,57 +20,51 @@ if TYPE_CHECKING:
 class Device(BaseModel):
     __tablename__ = "devices"
 
-    id: Mapped[int] = mapped_column(UUID, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(SA_UUID(as_uuid=True), primary_key=True, default=uuid7)
 
     user_id: Mapped[int] = mapped_column(
         BigInteger,
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
     )
-    device_id: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    did: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
 
-    device_info: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     device_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    platform: Mapped[str] = mapped_column(String(30))
-    os_version: Mapped[str] = mapped_column(String(50))
-    app_version: Mapped[str] = mapped_column(String(50))
+    platform: Mapped[str] = mapped_column(String(30), nullable=False)
 
-    fcm_token: Mapped[str] = mapped_column(String(512), nullable=False)
+    os_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    app_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    user_agent: Mapped[str] = mapped_column(String, nullable=False)
-    ip_address: Mapped[str] = mapped_column(String, nullable=False)
+    fcm_token: Mapped[str] = mapped_column(String(512), nullable=True)
 
-    user: Mapped[User] = relationship("User", back_populates="sessions")
+    user: Mapped["User"] = relationship("User", back_populates="devices")
 
     __table_args__ = (
-        Index("idx_sessions_user_device", "user_id", "device_id"),
+        Index("idx_devices_user_device", "user_id", "did", unique=True),
     )
 
     @classmethod
     def create(
-        cls, user_id: int, did: str,
-        ip_address: str,
-        device_info: bytes,
-        user_agent: str,
+        cls,
+        user_id: int,
+        did: str,
         device_name: str,
         platform: str,
-        os_version: str,
-        app_version: str,
+        os_version: str | None,
+        app_version: str | None,
         fcm_token: str,
     ) -> Self:
-        instance = cls(
+        return cls(
             id=uuid7(),
             user_id=user_id,
-            device_id=did,
-            device_info=device_info,
+            did=did,
             device_name=device_name,
             platform=platform,
             os_version=os_version,
             app_version=app_version,
             fcm_token=fcm_token,
-            user_agent=user_agent,
-            ip_address=ip_address
         )
-        return instance
 
     def update_fcm_token(self, fcm_token: str) -> None:
         self.fcm_token = fcm_token

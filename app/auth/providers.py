@@ -48,6 +48,7 @@ from app.auth.queries.sessions.get_list import GetListSessionQuery, GetListSessi
 from app.auth.queries.sessions.get_list_by_user import GetListSessionsUserQuery, GetListSessionsUserQueryHandler
 from app.auth.queries.users.check_username import CheckUsernameQuery, CheckUsernameQueryHandler
 from app.auth.queries.users.get_list import GetListUserQuery, GetListUserQueryHandler
+from app.auth.repositories.device import UserDeviceRepository
 from app.auth.repositories.oauth import OauthAccountRepository, OAuthCodeRepository
 from app.auth.repositories.permission import PermissionInvalidateRepository, PermissionRepository
 from app.auth.repositories.role import RoleInvalidateRepository, RoleRepository
@@ -59,7 +60,7 @@ from app.auth.services.jwt import AuthJWTManager
 from app.auth.services.oauth_manager import OAuthManager, OAuthProviderFactory
 from app.auth.services.oauth_providers import OAuthGithub, OAuthGoogle, OAuthYandex
 from app.auth.services.rbac import AuthRBACManager
-from app.auth.services.session import SessionManager
+from app.auth.services.session import DeviceSessionManager
 from app.auth.services.username import UsernameGenerator
 from app.core.configs.app import app_config
 from app.core.mediators.base import CommandRegistry, QueryRegistry
@@ -72,6 +73,7 @@ class AuthModuleProvider(Provider):
     repositories = provide_all(
         UserRepository,
         SessionRepository,
+        UserDeviceRepository,
         RoleRepository,
         PermissionRepository,
         OauthAccountRepository,
@@ -178,7 +180,7 @@ class AuthModuleProvider(Provider):
     rbac_manager_port = alias(source=AuthRBACManager, provides=RBACManagerInterface)
 
     handlers = provide_all(
-        SessionManager,
+        DeviceSessionManager,
         OAuthManager,
         UsernameGenerator,
 

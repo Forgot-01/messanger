@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -36,7 +37,7 @@ class RefreshTokenCommandHandler(BaseCommandHandler[RefreshTokenCommand, TokenGr
         refresh_token = await self.jwt_manager.validate_token(command.refresh_token, JwtTokenType.REFRESH)
         session = await self.session_repository.get_active_by_device(
             user_id=int(refresh_token.sub),
-            device_id=refresh_token.did,
+            device_id=UUID(refresh_token.did),
         )
 
         if not session or not session.is_active:
@@ -51,7 +52,7 @@ class RefreshTokenCommandHandler(BaseCommandHandler[RefreshTokenCommand, TokenGr
             raise NotFoundUserError(user_field="id", user_by="")
 
         user_jwt_data = AuthUserJWTData.create_from_user(
-            user, refresh_token.did
+            user, refresh_token.did, session_id=str(session.id)
         )
 
         try:

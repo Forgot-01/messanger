@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.models.user import User
-from app.auth.services.session import SessionManager
+from app.auth.services.session import DeviceSessionManager
 
 
 @pytest.mark.integration
@@ -15,7 +15,7 @@ class TestSessionManager:
     async def test_create_session(
         self,
         standard_user: User,
-        session_manager: SessionManager,
+        session_manager: DeviceSessionManager,
     ) -> None:
         new_session = await session_manager.get_or_create_session(
             user_id=standard_user.id,
@@ -31,7 +31,7 @@ class TestSessionManager:
         self,
         db_session: AsyncSession,
         standard_user: User,
-        session_manager: SessionManager,
+        session_manager: DeviceSessionManager,
     ) -> None:
         session1 = await session_manager.get_or_create_session(
             user_id=standard_user.id,
@@ -51,7 +51,7 @@ class TestSessionManager:
     async def test_different_devices_different_sessions(
         self,
         standard_user: User,
-        session_manager: SessionManager,
+        session_manager: DeviceSessionManager,
     ) -> None:
 
         session1 = await session_manager.get_or_create_session(
@@ -70,7 +70,7 @@ class TestSessionManager:
     async def test_session_device_id_generation(
         self,
         standard_user: User,
-        session_manager: SessionManager
+        session_manager: DeviceSessionManager
     ) -> None:
 
         session = await session_manager.get_or_create_session(
@@ -86,7 +86,7 @@ class TestSessionManager:
         self,
         db_session: AsyncSession,
         standard_user: User,
-        session_manager: SessionManager
+        session_manager: DeviceSessionManager
     ) -> None:
 
         session1 = await session_manager.get_or_create_session(

@@ -15,6 +15,7 @@ class Token(BaseModel):
     lvl: int
     jti: str
     did: str
+    sid: str
     exp: float
     iat: float
     username: str
@@ -29,6 +30,7 @@ class UserJWTData(BaseModel):
     permissions: list[str]
     security_level: int
     device_id: str
+    session_id: str
 
     @classmethod
     def create_from_token(cls, token_dto: Token) -> Self:
@@ -39,6 +41,7 @@ class UserJWTData(BaseModel):
             permissions=token_dto.permissions,
             device_id=token_dto.did,
             security_level=token_dto.lvl,
+            session_id=token_dto.sid
         )
 
     def to_dict(self) -> dict:
@@ -49,4 +52,5 @@ class UserJWTData(BaseModel):
             "permissions": self.permissions,
             "lvl": self.security_level,
             "did": self.device_id,
+            "sid": self.session_id
         }
