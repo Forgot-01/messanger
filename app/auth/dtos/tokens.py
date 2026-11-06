@@ -18,17 +18,6 @@ class TokenGroup(BaseModel):
     access_token: str
 
 
-class DeviceInformation(BaseModel):
-    user_agent: str
-    device_id: str
-    device_info: bytes
-
-
-class DeviceInfo(BaseModel):
-    browser_family: str
-    os_family: str
-    device: str
-
 
 class OAuthToken(BaseModel):
     access_token: str
