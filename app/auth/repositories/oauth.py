@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from datetime import timedelta
 
+import orjson
 from redis.asyncio import Redis
 from sqlalchemy import select
 
+from app.auth.dtos.device import OAuthInfo
 from app.auth.models.oauth import OAuthAccount, OAuthProviderEnum
 from app.core.db.repository import IRepository
 
@@ -38,17 +40,17 @@ class OauthAccountRepository(IRepository[OAuthAccount]):
 class OAuthCodeRepository:
     client: Redis
 
-    async def add_oauth_state(self, state: str, user_id: int | None=None) -> None:
-        await self.client.set(
-            f"state:{state}", user_id or 0, ex=timedelta(minutes=10)
-        )
-
-    async def get_state(self, state: str) -> int | None:
-        state = await self.client.get(f"state:{state}") # pyright: ignore[reportAssignmentType]
-        if state is None:
+    async def add_oauth_info(self, state: str, auth_info: OAuthInfo) -> None:
+            await self.client.set(
+                f"state:{state}", orjson.dumps(auth_info), ex=timedelta(minutes=10)
+            )
+    
+    async def get_oauth_info(self, state: str) -> OAuthInfo | None:
+        auth_info = await self.client.get(f"state:{state}") # pyright: ignore[reportAssignmentType]
+        if auth_info is None:
             return None
 
-        return int(state)
+        return OAuthInfo.model_validate(auth_info)
 
-    async def delete(self, state: str) -> None:
+    async def delete_oauth_info(self, state: str) -> None:
         await self.client.delete(f"state:{state}")

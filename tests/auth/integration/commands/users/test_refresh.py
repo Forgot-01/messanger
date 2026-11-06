@@ -1,4 +1,5 @@
 import asyncio
+from uuid import UUID
 
 import pytest
 from dishka import AsyncContainer
@@ -90,7 +91,7 @@ class TestRefreshTokenCommand:
         token_data = await auth_jwt_manager.validate_token(tokens.refresh_token, token_type=JwtTokenType.REFRESH)
         session = await session_repository.get_active_by_device(
             user_id=int(token_data.sub),
-            device_id=token_data.did
+            device_id=UUID(token_data.did)
         )
 
         if not session:
@@ -125,7 +126,7 @@ class TestRefreshTokenCommand:
         token_data = await auth_jwt_manager.validate_token(tokens.refresh_token, token_type=JwtTokenType.REFRESH)
         old_session = await session_repository.get_active_by_device(
             user_id=int(token_data.sub),
-            device_id=token_data.did,
+            device_id=UUID(token_data.did),
         )
 
         assert old_session is not None
@@ -141,7 +142,7 @@ class TestRefreshTokenCommand:
 
         new_session = await session_repository.get_active_by_device(
             user_id=int(token_data.sub),
-            device_id=token_data.did,
+            device_id=UUID(token_data.did),
         )
 
         assert new_session is not None

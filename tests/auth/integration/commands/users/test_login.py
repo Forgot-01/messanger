@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 import pytest
 from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +10,6 @@ from app.auth.models.user import User
 from app.auth.repositories.role import RoleRepository
 from app.auth.repositories.session import SessionRepository
 from app.auth.repositories.user import UserRepository
-from app.auth.services.device import generate_device_info
 from app.auth.services.jwt import AuthJWTManager
 from tests.auth.integration.factories import AuthCommandFactory, UserFactory
 
@@ -53,9 +54,13 @@ class TestLoginCommand:
             password="WrongPassword123!",
             user_agent="Mozilla/5.0",
             ip_address="127.0.0.1",
-            device_id=None
+            device_id=str(uuid4()),
+            platform="ios",
+            device_name="iphone 15 pro max",
+            os_version="ios 21.4.1",
+            app_version="1.0.1",
+            fcm_token=None
         )
-
         with pytest.raises(WrongLoginDataError) as exc_info:
             await handler.handle(command)
 
@@ -70,7 +75,12 @@ class TestLoginCommand:
             password="TestPass123!",
             user_agent="Mozilla/5.0",
             ip_address="127.0.0.1",
-            device_id=None
+            device_id=str(uuid4()),
+            platform="ios",
+            device_name="iphone 15 pro max",
+            os_version="ios 21.4.1",
+            app_version="1.0.1",
+            fcm_token=None
         )
 
         with pytest.raises(WrongLoginDataError):
@@ -95,7 +105,7 @@ class TestLoginCommand:
         sessions = await session_repository.get_active_by_user(standard_user.id)
 
         assert len(sessions) > 0
-        assert any(s.user_agent == generate_device_info("Chrome/100.0").user_agent for s in sessions)
+        assert any(s.user_agent == "Chrome/100.0" for s in sessions)
 
     async def test_login_multiple_times_same_device(
         self,
@@ -147,7 +157,12 @@ class TestLoginCommand:
             password="AnyPassword123!",
             user_agent="Mozilla/5.0",
             ip_address="127.0.0.1",
-            device_id=None
+            device_id=str(uuid4()),
+            platform="ios",
+            device_name="iphone 15 pro max",
+            os_version="ios 21.4.1",
+            app_version="1.0.1",
+            fcm_token=None
         )
 
         with pytest.raises(WrongLoginDataError):

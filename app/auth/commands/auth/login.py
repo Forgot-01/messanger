@@ -26,7 +26,7 @@ class LoginCommand(BaseCommand):
 
     os_version: str | None
     app_version: str | None
-    fcm_token: str
+    fcm_token: str | None
     ip_address: str
     user_agent: str
 
@@ -58,7 +58,7 @@ class LoginCommandHandler(BaseCommandHandler[LoginCommand, TokenGroup]):
             user_id=user.id, did=command.device_id, device_name=command.device_name,
             platform=command.platform, os_version=command.os_version,
             app_version=command.app_version, fcm_token=command.fcm_token,
-            ip_address=command.ip_address, user_agent=command.ip_address
+            ip_address=command.ip_address, user_agent=command.user_agent
         )
 
         await self.event_bus.publish(session.pull_events())

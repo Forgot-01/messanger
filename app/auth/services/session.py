@@ -21,7 +21,7 @@ class DeviceSessionManager:
 
         os_version: str | None,
         app_version: str | None,
-        fcm_token: str,
+        fcm_token: str | None,
         ip_address: str,
         user_agent: str,
     ) -> tuple[Device, Session]:
@@ -42,11 +42,10 @@ class DeviceSessionManager:
                 ip_address=ip_address,
                 user_agent=user_agent,
             )
-            session.online()
+            session.online(ip_adress=ip_address)
             await self.session_repository.create(session=session)
             await self.device_repository.create(device=device)
             return device, session
-
 
         old_session = await self.session_repository.get_active_by_device(
             user_id=user_id, device_id=device.id
@@ -60,7 +59,7 @@ class DeviceSessionManager:
             ip_address=ip_address,
             user_agent=user_agent,
         )
-        session.online()
+        session.online(ip_adress=ip_address)
         return device, session
 
     async def get_user_session(
@@ -72,7 +71,6 @@ class DeviceSessionManager:
         )
 
         if active_session:
-            active_session.online()
             return active_session
 
         return active_session

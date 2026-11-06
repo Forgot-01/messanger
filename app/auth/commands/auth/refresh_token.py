@@ -43,7 +43,7 @@ class RefreshTokenCommandHandler(BaseCommandHandler[RefreshTokenCommand, TokenGr
         if not session or not session.is_active:
             raise NotFoundOrInactiveSessionError
 
-        session.online()
+        session.online(ip_adress=command.ip_address)
 
         user = await self.user_repository.get_user_with_permission_by_id(
                 int(refresh_token.sub)

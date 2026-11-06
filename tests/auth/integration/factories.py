@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import Any
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from app.auth.models.permission import Permission
 from app.auth.models.role import Role
@@ -114,21 +114,16 @@ class SessionFactory:
     @staticmethod
     def create(
         user_id: int,
-        device_id: str | None = None,
+        device_id: UUID | None = None,
         user_agent: str | None = None,
         ip_address: str = "127.0.0.1",
-        is_active: bool = True,
-        last_activity: datetime | None = None,
         **kwargs: Any
     ) -> Session:
-        session = Session(
+        session = Session.create(
             user_id=user_id,
-            device_id=device_id or uuid4().hex,
-            device_info=b'{"browser": "Chrome", "os": "Windows"}',
+            device_id=device_id or uuid4(),
             user_agent=user_agent or "Mozilla/5.0",
             ip_address=ip_address,
-            is_active=is_active,
-            last_activity=last_activity or now_utc(),
             **kwargs
         )
         return session
@@ -214,5 +209,11 @@ class AuthCommandFactory:
             "password": password,
             "user_agent": user_agent,
             "ip_address": ip_address,
-            "device_id": device_id
+            "device_id": device_id or str(uuid4()),
+            "platform": "ios",
+            "device_name": "iphone 15 pro max",
+            "os_version": "ios 21.4.1",
+            "app_version": "1.0.1",
+            "fcm_token": None
+
         }

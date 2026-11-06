@@ -34,8 +34,6 @@ class ProcessOAuthCallbackCommand(BaseCommand):
     provider: str
     code: str | None
     state: str
-    user_agent: str
-    ip_address: str
 
 
 @dataclass(frozen=True)
@@ -56,10 +54,12 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
                 raise OAuthProviderUnavailableError(provider=command.provider)
 
             oauth_data = await self.oauth_manager.process_callback(command.provider, command.code)
-            user_id = await self.oauth_code_repository.get_state(command.state)
 
-            if user_id is None:
+            oauth_info = await self.oauth_code_repository.get_oauth_info(command.state)
+            if oauth_info is None:
                 raise OAuthStateNotFoundError(state=command.state)
+
+            user_id = oauth_info.user_id or 0
 
             oauth_account = await self.oauth_repository.get_by_provider_and_user_id(
                 provider=OAuthProviderEnum(command.provider), provider_user_id=oauth_data.provider_user_id
@@ -125,16 +125,18 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
                 )
                 await self.oauth_repository.create(oauth_account)
 
-            session = await self.session_manager.get_or_create_session(
-                user_id=user_id, user_agent=command.user_agent
+            device, session = await self.session_manager.get_or_create_session(
+                user_id=user_id, did=oauth_info.device.device_id, device_name=oauth_info.device.device_name,
+                platform=oauth_info.device.platform, os_version=oauth_info.device.os_version,
+                app_version=oauth_info.device.app_version, fcm_token=oauth_info.device.fcm_token,
+                ip_address=oauth_info.ip_address, user_agent=oauth_info.user_agent
             )
-            await self.oauth_code_repository.delete(command.state)
+            await self.oauth_code_repository.delete_oauth_info(command.state)
             await self.event_bus.publish(session.pull_events())
             await self.session.commit()
 
-
             token_group = self.jwt_manager.create_token_pair(
-                AuthUserJWTData.create_from_user(user, device_id=session.device_id)
+                AuthUserJWTData.create_from_user(user, device_id=str(device.id), session_id=str(session.id))
             )
 
             logger.info(

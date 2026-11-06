@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Self
 from uuid import UUID, uuid7
 
@@ -6,15 +7,33 @@ from sqlalchemy import (
     BigInteger,
     ForeignKey,
     Index,
-    LargeBinary,
     String,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db.base_model import BaseModel
+from app.core.events.event import BaseEvent
 
 if TYPE_CHECKING:
     from app.auth.models.user import User
+
+
+@dataclass(frozen=True)
+class UpdatedFcmTokenEvent(BaseEvent):
+    device_id: str
+    user_id: int
+    did: str
+
+    device_name: str
+    platform: str
+    os_version: str | None
+    app_version: str | None
+    fcm_token: str | None
+
+    __event_name__ = "auth.device.updated"
+
+    def get_aggregate_id(self) -> str:
+        return str(self.user_id)
 
 
 class Device(BaseModel):
@@ -36,7 +55,7 @@ class Device(BaseModel):
     os_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
     app_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    fcm_token: Mapped[str] = mapped_column(String(512), nullable=True)
+    fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
     user: Mapped["User"] = relationship("User", back_populates="devices")
 
@@ -53,7 +72,7 @@ class Device(BaseModel):
         platform: str,
         os_version: str | None,
         app_version: str | None,
-        fcm_token: str,
+        fcm_token: str | None,
     ) -> Self:
         return cls(
             id=uuid7(),
@@ -68,3 +87,15 @@ class Device(BaseModel):
 
     def update_fcm_token(self, fcm_token: str) -> None:
         self.fcm_token = fcm_token
+        self.register_event(
+            UpdatedFcmTokenEvent(
+                device_id=str(self.id),
+                user_id=self.user_id,
+                did=self.did,
+                device_name=self.device_name,
+                platform=self.platform,
+                os_version=self.os_version,
+                app_version=self.app_version,
+                fcm_token=self.fcm_token
+            )
+        )

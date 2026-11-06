@@ -54,7 +54,7 @@ class SuspiciousSessionEvent(BaseEvent):
 class Session(BaseModel):
     __tablename__ = "sessions"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[UUID] = mapped_column(SA_UUID, primary_key=True)
 
     user_id: Mapped[int] = mapped_column(
         BigInteger,
@@ -62,11 +62,12 @@ class Session(BaseModel):
     )
     device_id: Mapped[UUID] = mapped_column(SA_UUID(as_uuid=True), index=True, nullable=False)
 
-    ip_address: Mapped[str] = mapped_column(INET, nullable=True)
-    user_agent: Mapped[str] = mapped_column(String, nullable=True)
+    ip_address: Mapped[str] = mapped_column(INET, nullable=False)
+    user_agent: Mapped[str] = mapped_column(String, nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     last_activity: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), index=True)
+    last_ip_address: Mapped[str] = mapped_column(INET, nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="sessions")
@@ -85,10 +86,12 @@ class Session(BaseModel):
         user_agent: str,
     ) -> Self:
         instance = cls(
+            id=uuid7(),
             user_id=user_id,
             device_id=device_id,
             ip_address=ip_address,
             user_agent=user_agent,
+            last_ip_address=ip_address,
             revoked_at=None,
         )
 
@@ -110,8 +113,9 @@ class Session(BaseModel):
             )
         )
 
-    def online(self) -> None:
+    def online(self, ip_adress: str) -> None:
         self.last_activity = now_utc()
+        self.last_ip_address = self.ip_address
 
     @property
     def is_active(self) -> bool:
