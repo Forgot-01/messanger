@@ -98,7 +98,7 @@ class TestDeletePermissionFromUser:
             )
         )
 
-        assert await token_blacklist_repository.get_user_backlist(target.id) is not None
+        assert await token_blacklist_repository.get_user_blacklist(target.id) is not None
 
     async def test_unknown_permission_name_is_reported(
         self,

@@ -18,4 +18,5 @@ class OAuthInfo(BaseModel):
     user_id: int | None
     ip_address: str
     user_agent: str
-
+    code_verifier: str
+    provider: str

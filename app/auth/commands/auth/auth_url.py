@@ -32,7 +32,10 @@ class CreateOAuthAuthorizeUrlCommandHandler(BaseCommandHandler[CreateOAuthAuthor
     oauth_manager: OAuthManager
 
     async def handle(self, command: CreateOAuthAuthorizeUrlCommand) -> str:
-        state = secrets.token_urlsafe(32)
+        state = self.oauth_manager.generate_state()
+        code_verifier = self.oauth_manager.generate_code_verifier()
+        code_challenge = self.oauth_manager.generate_code_challenge(verifier=code_verifier)
+
         await self.oauth_code_repository.add_oauth_info(
             state,
             OAuthInfo(
@@ -46,12 +49,13 @@ class CreateOAuthAuthorizeUrlCommandHandler(BaseCommandHandler[CreateOAuthAuthor
                     fcm_token=command.fcm_token,
                 ),
                 ip_address=command.ip_address,
-                user_agent=command.user_agent
+                user_agent=command.user_agent,
+                code_verifier=code_verifier,
+                provider=command.provider,
             )
         )
 
         logger.info("Login by oauth", extra={"provider": command.provider, "user_id": command.user_id})
         return await self.oauth_manager.get_authorize_url(
-            provider_name=command.provider, state=state
+            provider_name=command.provider, state=state, code_challenge=code_challenge,
         )
-

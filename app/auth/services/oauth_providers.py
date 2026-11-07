@@ -21,10 +21,13 @@ class OAuthProvider(ABC):
     userinfo_url: str
 
     @abstractmethod
-    def get_auth_url(self, state: str) -> str: ...
+    def get_auth_url(self, state: str, code_challenge: str) -> str: ...
 
     @abstractmethod
-    async def exchange_code_for_token(self, code: str) -> OAuthToken:
+    async def exchange_code_for_token(
+        self, code: str,
+        code_verifier: str,
+    ) -> OAuthToken:
         ...
 
     async def _exchange_code(self, data: dict[str, Any], headers: dict[str, Any]) -> OAuthToken:
@@ -79,7 +82,7 @@ class OAuthProvider(ABC):
 
 @dataclass
 class OAuthGoogle(OAuthProvider):
-    def get_auth_url(self, state: str) -> str:
+    def get_auth_url(self, state: str, code_challenge: str) -> str:
         params = {
             "client_id": self.client_id,
             "response_type": "code",
@@ -87,17 +90,23 @@ class OAuthGoogle(OAuthProvider):
             "redirect_uri": self.redirect_uri,
             "state": state,
             "access_type": "offline",
-            "prompt": "consent"
+            "prompt": "consent",
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
         }
         return f"{self.base_auth_url}?{urlencode(params)}"
 
-    async def exchange_code_for_token(self, code: str) -> OAuthToken:
+    async def exchange_code_for_token(
+        self, code: str,
+        code_verifier: str,
+    ) -> OAuthToken:
         data = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": self.redirect_uri
+            "redirect_uri": self.redirect_uri,
+            "code_verifier": code_verifier,
         }
         return await self._exchange_code(
             data=data,
@@ -120,23 +129,30 @@ class OAuthGoogle(OAuthProvider):
 
 @dataclass
 class OAuthYandex(OAuthProvider):
-    def get_auth_url(self, state: str) -> str:
+    def get_auth_url(self, state: str, code_challenge: str) -> str:
         params = {
             "client_id": self.client_id,
             "response_type": "code",
             "redirect_uri": self.redirect_uri,
             "state": state,
-            "force_confirm": "yes"
+            "force_confirm": "yes",
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
         }
         return f"{self.base_auth_url}?{urlencode(params)}"
 
-    async def exchange_code_for_token(self, code: str) -> OAuthToken:
+    async def exchange_code_for_token(
+        self, code: str,
+        code_verifier: str,
+    ) -> OAuthToken:
         data = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "code": code,
             "grant_type": "authorization_code",
-            "redirect_uri": self.redirect_uri
+            "redirect_uri": self.redirect_uri,
+            "code_verifier": code_verifier,
+
         }
         return await self._exchange_code(
             data=data,
@@ -158,22 +174,28 @@ class OAuthYandex(OAuthProvider):
 
 @dataclass
 class OAuthGithub(OAuthProvider):
-    def get_auth_url(self, state: str) -> str:
+    def get_auth_url(self, state: str, code_challenge: str) -> str:
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
             "scope": "read:user,user:email",
             "state": state,
-            "allow_signup": "false"
+            "allow_signup": "false",
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
         }
         return f"{self.base_auth_url}?{urlencode(params)}"
 
-    async def exchange_code_for_token(self, code: str) -> OAuthToken:
+    async def exchange_code_for_token(
+        self, code: str,
+        code_verifier: str,
+    ) -> OAuthToken:
         data = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,
             "code": code,
-            "redirect_uri": self.redirect_uri
+            "redirect_uri": self.redirect_uri,
+            "code_verifier": code_verifier,
         }
         return await self._exchange_code(
             data=data,

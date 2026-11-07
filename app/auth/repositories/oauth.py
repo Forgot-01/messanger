@@ -42,15 +42,12 @@ class OAuthCodeRepository:
 
     async def add_oauth_info(self, state: str, auth_info: OAuthInfo) -> None:
             await self.client.set(
-                f"state:{state}", orjson.dumps(auth_info), ex=timedelta(minutes=10)
+                f"oauth:state:{state}", auth_info.model_dump_json(), ex=timedelta(minutes=10)
             )
-    
-    async def get_oauth_info(self, state: str) -> OAuthInfo | None:
-        auth_info = await self.client.get(f"state:{state}") # pyright: ignore[reportAssignmentType]
+
+    async def getdel_oauth_info(self, state: str) -> OAuthInfo | None:
+        auth_info = await self.client.getdel(f"oauth:state:{state}")
         if auth_info is None:
             return None
 
         return OAuthInfo.model_validate(auth_info)
-
-    async def delete_oauth_info(self, state: str) -> None:
-        await self.client.delete(f"state:{state}")

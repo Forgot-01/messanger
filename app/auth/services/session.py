@@ -60,18 +60,5 @@ class DeviceSessionManager:
             user_agent=user_agent,
         )
         session.online(ip_adress=ip_address)
+        await self.session_repository.create(session=session)
         return device, session
-
-    async def get_user_session(
-        self, user_id: int, device_id: UUID
-    ) -> Session | None:
-        active_session = await self.session_repository.get_active_by_device(
-            user_id=user_id,
-            device_id=device_id,
-        )
-
-        if active_session:
-            return active_session
-
-        return active_session
-

@@ -14,39 +14,48 @@ class OAuth2PasswordRequestFormWithDevice:
             str | None,
             Form(pattern="^password$"),
         ] = None,
-        username: Annotated[
-            str,
-            Form(),
-        ],
+        username: Annotated[str, Form()],
         password: Annotated[
             str,
             Form(json_schema_extra={"format": "password"}),
         ],
-        scope: Annotated[
-            str,
-            Form(),
-        ] = "",
-        device_id: Annotated[
-            str | None,
-            Form(),
-        ] = None,
-        client_id: Annotated[
-            str | None,
-            Form(),
-        ] = None,
+        scope: Annotated[str, Form()] = "",
+        device_id: Annotated[str | None, Form()] = None,
+        platform: Annotated[str, Form()] = "unknown",
+        device_name: Annotated[str, Form()] = "Unknown device",
+        os_version: Annotated[str | None, Form()] = None,
+        app_version: Annotated[str | None, Form()] = None,
+        fcm_token: Annotated[str | None, Form()] = None,
+        client_id: Annotated[str | None, Form()] = None,
         client_secret: Annotated[
             str | None,
             Form(json_schema_extra={"format": "password"}),
         ] = None,
     ) -> None:
+
         self.grant_type = grant_type
         self.username = username
         self.password = password
         self.scopes = scope.split()
+
+        self.device_id = device_id
+        self.platform = platform
+        self.device_name = device_name
+        self.os_version = os_version
+        self.app_version = app_version
+        self.fcm_token = fcm_token
+
         self.client_id = client_id
         self.client_secret = client_secret
-        self.device_id = device_id
 
+
+class DeviceMetadataRequest(BaseModel):
+    device_id: str
+    platform: str
+    device_name: str
+    os_version: str | None = None
+    app_version: str | None = None
+    fcm_token: str | None = None
 
 
 class RefreshTokenRequest(BaseModel):

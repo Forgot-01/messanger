@@ -45,9 +45,8 @@ class TokenBlacklistRepository:
             f"revoked:{jti}",  str(now_utc().timestamp()), ex=expiration
         )
 
-    async def get_token_backlist(self, jti: str) -> datetime:
-        time_str = await self.client.get(f"revoked:{jti}") or "0"
-        return fromtimestamp(float(time_str))
+    async def is_token_revoked(self, jti: str) -> bool:
+        return bool(await self.client.exists(f"revoked:{jti}"))
 
     async def add_user(self, user_id: int, expiration: timedelta | None=None) -> None:
         if expiration is None:
@@ -57,7 +56,7 @@ class TokenBlacklistRepository:
             f"user:{user_id}",  str(now_utc().timestamp()), ex=expiration
         )
 
-    async def get_user_backlist(self, user_id: int)  -> datetime:
+    async def get_user_blacklist(self, user_id: int)  -> datetime:
         time_str = await self.client.get(f"user:{user_id}") or "0"
         return fromtimestamp(float(time_str))
 

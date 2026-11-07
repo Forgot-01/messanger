@@ -66,7 +66,7 @@ class TestCreateOAuthAuthorizeUrl:
 
         assert url.startswith("https://accounts.test/authorize?")
         state = url.split("state=")[1]
-        assert await oauth_code_repository.get_oauth_info(state) is not None
+        assert await oauth_code_repository.getdel_oauth_info(state) is not None
 
     async def test_state_is_unique_per_call(
         self,
@@ -88,7 +88,7 @@ class TestCreateOAuthAuthorizeUrl:
             CreateOAuthAuthorizeUrlCommand(provider=PROVIDER, user_id=None)
         )
 
-        assert await oauth_code_repository.get_oauth_info(url.split("state=")[1]) == 0
+        assert await oauth_code_repository.getdel_oauth_info(url.split("state=")[1]) == 0
 
     async def test_connect_flow_stores_the_user_id(
         self,
@@ -100,7 +100,7 @@ class TestCreateOAuthAuthorizeUrl:
             CreateOAuthAuthorizeUrlCommand(provider=PROVIDER, user_id=standard_user.id)
         )
 
-        assert await oauth_code_repository.get_oauth_info(
+        assert await oauth_code_repository.getdel_oauth_info(
             url.split("state=")[1]
         ) == standard_user.id
 
@@ -378,7 +378,7 @@ class TestProcessOAuthCallback:
 
         await handler.handle(self.callback(state))
 
-        assert await oauth_code_repository.get_oauth_info(state) is None
+        assert await oauth_code_repository.getdel_oauth_info(state) is None
 
     async def test_replaying_the_same_state_is_refused(
         self,

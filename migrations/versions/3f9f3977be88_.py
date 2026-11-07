@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: b41b5a12f0dc
+Revision ID: 3f9f3977be88
 Revises: 
-Create Date: 2026-10-20 23:33:39.905992
+Create Date: 2026-11-07 19:55:58.468048
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'b41b5a12f0dc'
+revision: str = '3f9f3977be88'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -200,9 +200,9 @@ def upgrade() -> None:
     sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
     sa.Column('did', sa.String(length=128), nullable=False),
-    sa.Column('token', sa.String(length=512), nullable=False, comment='FCM registration token или APNs device token'),
-    sa.Column('platform', sa.Enum('ios', 'web', 'android', name='platformenum'), nullable=False, comment='android | ios | web'),
-    sa.Column('device_name', sa.String(length=128), nullable=True, comment="Читаемое имя: 'iPhone 15 Pro', 'Chrome on Windows'"),
+    sa.Column('token', sa.String(length=512), nullable=False),
+    sa.Column('platform', sa.String(length=50), nullable=False),
+    sa.Column('device_name', sa.String(length=128), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
@@ -280,6 +280,21 @@ def upgrade() -> None:
     op.create_index('ix_chat_members_user_chat', 'chat_members', ['user_id', 'chat_id'], unique=False)
     op.create_index(op.f('ix_chat_members_user_id'), 'chat_members', ['user_id'], unique=False)
     op.create_index('ix_chat_members_user_pinned', 'chat_members', ['user_id', sa.literal_column('pinned_at DESC')], unique=False, postgresql_where=sa.text('pinned_at IS NOT NULL'))
+    op.create_table('devices',
+    sa.Column('id', sa.UUID(), nullable=False),
+    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('did', sa.String(length=255), nullable=False),
+    sa.Column('device_name', sa.String(length=255), nullable=False),
+    sa.Column('platform', sa.String(length=30), nullable=False),
+    sa.Column('os_version', sa.String(length=50), nullable=True),
+    sa.Column('app_version', sa.String(length=50), nullable=True),
+    sa.Column('fcm_token', sa.String(length=512), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index('idx_devices_user_device', 'devices', ['user_id', 'did'], unique=True)
+    op.create_index(op.f('ix_devices_did'), 'devices', ['did'], unique=False)
+    op.create_index(op.f('ix_devices_user_id'), 'devices', ['user_id'], unique=False)
     op.create_table('messages',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('chat_id', sa.UUID(), nullable=False),
@@ -378,14 +393,15 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('role_id', 'permission_id')
     )
     op.create_table('sessions',
-    sa.Column('id', sa.BigInteger(), autoincrement=True, nullable=False),
+    sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('user_id', sa.BigInteger(), nullable=False),
-    sa.Column('device_id', sa.String(), nullable=False),
-    sa.Column('device_info', sa.LargeBinary(), nullable=False),
+    sa.Column('device_id', sa.UUID(), nullable=False),
+    sa.Column('ip_address', postgresql.INET(), nullable=False),
     sa.Column('user_agent', sa.String(), nullable=False),
-    sa.Column('ip_address', sa.String(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('last_activity', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('last_ip_address', postgresql.INET(), nullable=False),
+    sa.Column('revoked_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -542,6 +558,10 @@ def downgrade() -> None:
     op.drop_index('ix_messages_chat_links', table_name='messages', postgresql_where=sa.text('has_links AND is_deleted = false'))
     op.drop_index('idx_messages_content_tsvector', table_name='messages', postgresql_using='gin')
     op.drop_table('messages')
+    op.drop_index(op.f('ix_devices_user_id'), table_name='devices')
+    op.drop_index(op.f('ix_devices_did'), table_name='devices')
+    op.drop_index('idx_devices_user_device', table_name='devices')
+    op.drop_table('devices')
     op.drop_index('ix_chat_members_user_pinned', table_name='chat_members', postgresql_where=sa.text('pinned_at IS NOT NULL'))
     op.drop_index(op.f('ix_chat_members_user_id'), table_name='chat_members')
     op.drop_index('ix_chat_members_user_chat', table_name='chat_members')

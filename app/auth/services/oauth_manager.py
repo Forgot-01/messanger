@@ -27,15 +27,28 @@ class OAuthProviderFactory:
 class OAuthManager:
     provider_factory: OAuthProviderFactory
 
-    async def get_authorize_url(self, provider_name: str, state: str) -> str:
+    async def get_authorize_url(
+        self,
+        provider_name: str,
+        state: str,
+        code_challenge: str,
+    ) -> str:
         provider = self.provider_factory.get_provider(provider_name)
-        return provider.get_auth_url(state)
+        return provider.get_auth_url(state, code_challenge=code_challenge)
 
-    async def process_callback(self, provider_name: str, code: str) -> OAuthData:
+    async def process_callback(
+        self,
+        provider_name: str,
+        code: str,
+        code_verifier: str,
+    ) -> OAuthData:
         provider = self.provider_factory.get_provider(provider_name)
 
         try:
-            token = await provider.exchange_code_for_token(code)
+            token = await provider.exchange_code_for_token(
+                code=code,
+                code_verifier=code_verifier,
+            )
             oauth_user = await provider.get_user_info(token.access_token)
         except ApplicationError:
             raise

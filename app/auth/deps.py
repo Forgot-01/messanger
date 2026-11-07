@@ -51,4 +51,3 @@ ActiveUserModel = Annotated[UserDTO, Depends(ActiveUserGetter())]
 
 
 AuthCurrentUserJWTData = Annotated[AuthUserJWTData, Depends(UserJWTDataGetter())]
-

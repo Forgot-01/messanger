@@ -25,6 +25,7 @@ class OAuthToken(BaseModel):
     expires_in: int | None = None
     refresh_token: str | None = None
     scope: str | None = None
+    id_token: str | None = None
 
 
 class OAuthData(BaseModel):

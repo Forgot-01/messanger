@@ -32,6 +32,7 @@ from app.auth.exceptions import (
 from app.auth.queries.auth.oauth import GetUserOAuthAccountsQuery
 from app.auth.schemas.auth.requests import (
     ChangePasswordRequest,
+    DeviceMetadataRequest,
     OAuth2PasswordRequestFormWithDevice,
     OAuthCallbackQuery,
     ResetPasswordRequest,
@@ -74,9 +75,14 @@ async def login(
         LoginCommand(
             username=login_request.username,
             password=login_request.password,
-            device_id=login_request.device_id,
+            device_id=login_request.device_id or "",
+            platform=login_request.platform,
+            device_name=login_request.device_name,
+            os_version=login_request.os_version,
+            app_version=login_request.app_version,
+            fcm_token=login_request.fcm_token,
             user_agent=request.headers.get("user-agent", ""),
-            ip_address=get_ip_from_request(request)
+            ip_address=get_ip_from_request(request),
         )
     )
     refresh_cookie_manager.set_refresh_token(response, token_group.refresh_token)
@@ -223,7 +229,7 @@ async def verify_email(
 ) -> None:
     await mediator.handle_command(VerifyCommand(token=verify_email_request.token))
 
-@router.get(
+@router.post(
     "/oauth/{provider}/authorize/",
     summary="Get URL for OAuth authorization",
     status_code=status.HTTP_200_OK,
@@ -235,14 +241,27 @@ async def verify_email(
 async def oauth_authorize(
     mediator: FromDishka[BaseMediator],
     provider: str,
+    device_request: DeviceMetadataRequest,
+    request: Request,
 ) -> OAuthUrlResponse:
     url: str = await mediator.handle_command(
-        CreateOAuthAuthorizeUrlCommand(provider=provider, user_id=None)
+        CreateOAuthAuthorizeUrlCommand(
+            provider=provider,
+            user_id=None,
+            device_id=device_request.device_id,
+            platform=device_request.platform,
+            device_name=device_request.device_name,
+            os_version=device_request.os_version,
+            app_version=device_request.app_version,
+            fcm_token=device_request.fcm_token,
+            user_agent=request.headers.get("user-agent", ""),
+            ip_address=get_ip_from_request(request),
+        )
     )
 
     return OAuthUrlResponse(url=url)
 
-@router.get(
+@router.post(
     "/oauth/{provider}/authorize/connect/",
     summary="Get the OAuth connection URL for an existing user",
     status_code=status.HTTP_200_OK,
@@ -255,9 +274,22 @@ async def oauth_authorize_connect(
     mediator: FromDishka[BaseMediator],
     provider: str,
     current_user: ActiveUserModel,
+    device_request: DeviceMetadataRequest,
+    request: Request,
 ) -> OAuthUrlResponse:
     url: str = await mediator.handle_command(
-        CreateOAuthAuthorizeUrlCommand(provider=provider, user_id=current_user.id)
+        CreateOAuthAuthorizeUrlCommand(
+            provider=provider,
+            user_id=current_user.id,
+            device_id=device_request.device_id,
+            platform=device_request.platform,
+            device_name=device_request.device_name,
+            os_version=device_request.os_version,
+            app_version=device_request.app_version,
+            fcm_token=device_request.fcm_token,
+            user_agent=request.headers.get("user-agent", ""),
+            ip_address=get_ip_from_request(request),
+        )
     )
     return OAuthUrlResponse(url=url)
 
@@ -288,7 +320,6 @@ async def oauth_callback(
     provider: str,
     mediator: FromDishka[BaseMediator],
     refresh_cookie_manager: FromDishka[RefreshTokenCookieManager],
-    request: Request,
     response: Response,
     oauth_callback_query: Annotated[OAuthCallbackQuery, Query()],
 ) -> AccessTokenResponse:
@@ -297,8 +328,6 @@ async def oauth_callback(
             provider=provider,
             code=oauth_callback_query.code,
             state=oauth_callback_query.state,
-            user_agent=request.headers.get("user-agent", ""),
-            ip_address=get_ip_from_request(request)
         )
     )
     refresh_cookie_manager.set_refresh_token(response, token_group.refresh_token)

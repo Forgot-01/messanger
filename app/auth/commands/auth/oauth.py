@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dtos.tokens import TokenGroup
 from app.auth.dtos.user import AuthUserJWTData
 from app.auth.exceptions import (
+    InvalidOAuthProviderError,
     LinkedAnotherUserOAuthError,
     NotFoundRoleError,
     NotFoundUserError,
@@ -53,13 +54,20 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
             if command.code is None:
                 raise OAuthProviderUnavailableError(provider=command.provider)
 
-            oauth_data = await self.oauth_manager.process_callback(command.provider, command.code)
-
-            oauth_info = await self.oauth_code_repository.get_oauth_info(command.state)
+            oauth_info = await self.oauth_code_repository.getdel_oauth_info(command.state)
             if oauth_info is None:
                 raise OAuthStateNotFoundError(state=command.state)
 
+            if oauth_info.provider != command.provider:
+                raise InvalidOAuthProviderError()
+
             user_id = oauth_info.user_id or 0
+
+            oauth_data = await self.oauth_manager.process_callback(
+                command.provider,
+                command.code,
+                code_verifier=oauth_info.code_verifier,
+            )
 
             oauth_account = await self.oauth_repository.get_by_provider_and_user_id(
                 provider=OAuthProviderEnum(command.provider), provider_user_id=oauth_data.provider_user_id
@@ -131,7 +139,6 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
                 app_version=oauth_info.device.app_version, fcm_token=oauth_info.device.fcm_token,
                 ip_address=oauth_info.ip_address, user_agent=oauth_info.user_agent
             )
-            await self.oauth_code_repository.delete_oauth_info(command.state)
             await self.event_bus.publish(session.pull_events())
             await self.session.commit()
 

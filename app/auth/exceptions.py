@@ -69,6 +69,15 @@ class OAuthProviderUnavailableError(ApplicationError):
         return {"provider": self.provider}
 
 
+@dataclass(kw_only=True)
+class InvalidOAuthProviderError(ApplicationError):
+    code: str = "INVALID_OAUTH_PROVIDER"
+    status: int = 400
+
+    @property
+    def message(self) -> str:
+        return "Provider"
+
 
 @dataclass(kw_only=True)
 class OAuthInactiveError(ApplicationError):
