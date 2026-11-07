@@ -59,7 +59,7 @@ class ProcessOAuthCallbackCommandHandler(BaseCommandHandler[ProcessOAuthCallback
                 raise OAuthStateNotFoundError(state=command.state)
 
             if oauth_info.provider != command.provider:
-                raise InvalidOAuthProviderError()
+                raise InvalidOAuthProviderError
 
             user_id = oauth_info.user_id or 0
 

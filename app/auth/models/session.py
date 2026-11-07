@@ -3,9 +3,17 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Self
 from uuid import UUID, uuid7
 
-from sqlalchemy import UUID as SA_UUID, BigInteger, DateTime, ForeignKey, Index, String, func
+from sqlalchemy import (
+    UUID as SA_UUID,
+    BigInteger,
+    DateTime,
+    ForeignKey,
+    Index,
+    String,
+    func,
+)
+from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import INET, JSONB
 
 from app.core.db.base_model import BaseModel
 from app.core.events.event import BaseEvent
@@ -115,7 +123,7 @@ class Session(BaseModel):
 
     def online(self, ip_adress: str) -> None:
         self.last_activity = now_utc()
-        self.last_ip_address = self.ip_address
+        self.last_ip_address = ip_adress
 
     @property
     def is_active(self) -> bool:

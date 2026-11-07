@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from uuid import UUID
 
 from app.auth.models.device import Device
 from app.auth.models.session import Session

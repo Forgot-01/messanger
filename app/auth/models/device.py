@@ -57,7 +57,7 @@ class Device(BaseModel):
 
     fcm_token: Mapped[str | None] = mapped_column(String(512), nullable=True)
 
-    user: Mapped["User"] = relationship("User", back_populates="devices")
+    user: Mapped[User] = relationship("User", back_populates="devices")
 
     __table_args__ = (
         Index("idx_devices_user_device", "user_id", "did", unique=True),

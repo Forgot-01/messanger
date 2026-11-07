@@ -1,7 +1,7 @@
 import base64
-from dataclasses import dataclass, field
 import hashlib
 import secrets
+from dataclasses import dataclass, field
 
 from app.auth.dtos.tokens import OAuthData
 from app.auth.exceptions import NotExistProviderOAuthError, OAuthProviderUnavailableError

@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from datetime import timedelta
 
-import orjson
 from redis.asyncio import Redis
 from sqlalchemy import select
 
