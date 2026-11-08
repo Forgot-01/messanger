@@ -267,6 +267,7 @@ def make_user_jwt() -> Callable[..., UserJWTData]:
         permissions: list[str] | None = None,
         security_level: int = 1,
         device_id: str = "device_1",
+        session_id: str = "session_1"
     ) -> UserJWTData:
         return UserJWTData(
             id=id,
@@ -275,6 +276,7 @@ def make_user_jwt() -> Callable[..., UserJWTData]:
             permissions=permissions or [],
             security_level=security_level,
             device_id=device_id,
+            session_id=session_id
         )
 
     return _make_user_jwt

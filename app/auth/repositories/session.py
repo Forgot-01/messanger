@@ -13,7 +13,7 @@ from app.core.utils import fromtimestamp, now_utc
 
 @dataclass
 class SessionRepository(IRepository[Session]):
-    async def get_by_id(self, session_id: int) -> Session | None:
+    async def get_by_id(self, session_id: UUID) -> Session | None:
         query = select(Session).where(Session.id == session_id)
         result = await self.session.execute(query)
         return result.scalar()

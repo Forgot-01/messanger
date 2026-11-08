@@ -10,7 +10,6 @@ from app.auth.services.session import DeviceSessionManager
 @pytest.mark.integration
 @pytest.mark.auth
 class TestSessionManager:
-
     @pytest.mark.asyncio
     async def test_create_session(
         self,

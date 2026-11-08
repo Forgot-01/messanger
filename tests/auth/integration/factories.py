@@ -146,6 +146,7 @@ class TokenFactory:
     def create_access_token_payload(
         user_id: int,
         device_id: str | None = None,
+        session_id: str | None = None,
         roles: list[str] | None = None,
         permissions: list[str] | None = None,
         security_level: int = 1,
@@ -156,7 +157,8 @@ class TokenFactory:
             "type": "access",
             "sub": str(user_id),
             "lvl": security_level,
-            "did": device_id or uuid4().hex,
+            "did": device_id or str(uuid4()),
+            "sid": session_id or str(uuid4()),
             "jti": str(uuid4()),
             "exp": (now + timedelta(minutes=exp_minutes)).timestamp(),
             "iat": now.timestamp(),
@@ -168,6 +170,7 @@ class TokenFactory:
     def create_refresh_token_payload(
         user_id: int,
         device_id: str | None = None,
+        session_id: str | None = None,
         exp_days: int = 7,
     ) -> dict[str, Any]:
         now = now_utc()
@@ -175,45 +178,9 @@ class TokenFactory:
             "type": "refresh",
             "sub": str(user_id),
             "lvl": 1,
-            "did": device_id or uuid4().hex,
+            "did": device_id or str(uuid4()),
+            "sid": session_id or str(uuid4()),
             "jti": str(uuid4()),
             "exp": (now + timedelta(days=exp_days)).timestamp(),
             "iat": now.timestamp(),
-        }
-
-
-class AuthCommandFactory:
-    @staticmethod
-    def create_register_command(
-        username: str | None = None,
-        email: str | None = None,
-        password: str = "TestPass123!",
-    ) -> dict[str, Any]:
-        return {
-            "username": username or f"user{uuid4().hex[:8]}",
-            "email": email or f"test_{uuid4().hex[:8]}@example.com",
-            "password": password,
-            "password_repeat": password,
-        }
-
-    @staticmethod
-    def create_login_command(
-        username: str,
-        password: str = "TestPass123!",
-        user_agent: str = "Mozilla/5.0",
-        ip_address: str = "127.0.0.1",
-        device_id: str | None = None,
-    ) -> dict[str, Any]:
-        return {
-            "username": username,
-            "password": password,
-            "user_agent": user_agent,
-            "ip_address": ip_address,
-            "device_id": device_id or str(uuid4()),
-            "platform": "ios",
-            "device_name": "iphone 15 pro max",
-            "os_version": "ios 21.4.1",
-            "app_version": "1.0.1",
-            "fcm_token": None
-
         }

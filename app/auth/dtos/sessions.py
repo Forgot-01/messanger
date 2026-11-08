@@ -1,10 +1,11 @@
 from datetime import datetime
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
 
 
 class SessionDTO(BaseModel):
-    id: int
+    id: UUID
     user_id: int
     device_info: str
     user_agent: str

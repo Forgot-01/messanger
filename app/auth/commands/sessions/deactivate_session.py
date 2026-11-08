@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class UserDeactivateSessionCommand(BaseCommand):
-    session_id: int
+    session_id: UUID
     user_jwt_data: AuthUserJWTData
 
 

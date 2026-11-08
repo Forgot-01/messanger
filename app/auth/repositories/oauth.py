@@ -49,4 +49,4 @@ class OAuthCodeRepository:
         if auth_info is None:
             return None
 
-        return OAuthInfo.model_validate(auth_info)
+        return OAuthInfo.model_validate_json(auth_info)

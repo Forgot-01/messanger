@@ -35,9 +35,8 @@ class RefreshTokenCommandHandler(BaseCommandHandler[RefreshTokenCommand, TokenGr
             raise InvalidTokenError(token=None)
 
         refresh_token = await self.jwt_manager.validate_token(command.refresh_token, JwtTokenType.REFRESH)
-        session = await self.session_repository.get_active_by_device(
-            user_id=int(refresh_token.sub),
-            device_id=UUID(refresh_token.did),
+        session = await self.session_repository.get_by_id(
+            session_id=UUID(refresh_token.sid)
         )
 
         if not session or not session.is_active:
