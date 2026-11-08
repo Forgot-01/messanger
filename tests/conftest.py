@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 from dishka import AsyncContainer, Provider, Scope, provide
 from dishka.integrations.fastapi import setup_dishka
-from dishka.integrations.faststream import setup_dishka as setup_faststream_dishka
+from dishka_faststream import setup_dishka as setup_faststream_dishka
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi_limiter import FastAPILimiter

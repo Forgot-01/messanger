@@ -185,7 +185,7 @@ class MessageRepository(IRepository[Message]):
         )
 
         result = await self.session.execute(stmt)
-        return list(result.tuples())
+        return list(result)
 
     async def get_link_messages_page(
         self,

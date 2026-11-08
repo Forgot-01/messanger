@@ -123,7 +123,7 @@ class ReadReceiptRepository(IRepository[ReadReceipt]):
         result = await self.session.execute(stmt)
         return [
             MessageReader(user_id=int(user_id), read_at=read_at, profile=profile)
-            for user_id, read_at, profile in result.tuples()
+            for user_id, read_at, profile in result
         ]
 
     async def cleanup_marks_older_than(self, threshold: datetime, batch_size: int) -> int:

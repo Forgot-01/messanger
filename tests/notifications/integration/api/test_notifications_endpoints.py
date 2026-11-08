@@ -343,7 +343,6 @@ class TestDeviceEndpoint:
             json={"platform": "SYMBIAN", "token": "t", "device_name": "d"},
             headers=create_auth_headers(user_jwt),
         )
-
         assert response.status_code == 422
 
     async def test_device_registration_requires_authentication(

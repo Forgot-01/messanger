@@ -1,4 +1,4 @@
-from dishka.integrations.faststream import FromDishka, inject
+from dishka_faststream import FromDishka, inject
 from faststream.kafka import KafkaRouter
 from pydantic import BaseModel, Field
 

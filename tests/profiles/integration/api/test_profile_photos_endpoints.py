@@ -4,8 +4,8 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.privacy.utils import PrivacyRule, PrivacyVisibility
 from app.core.services.auth.dto import UserJWTData
+from app.privacy.utils import PrivacyRule, PrivacyVisibility
 from app.profiles.config import profile_config
 from app.profiles.models.privacy import ProfilePrivacy
 from app.profiles.models.profile import Profile

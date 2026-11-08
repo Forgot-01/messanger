@@ -5,7 +5,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import structlog
-from dishka.integrations.faststream import FastStreamProvider, setup_dishka
+from dishka_faststream import FastStreamProvider, setup_dishka
 from faststream import ContextRepo
 from faststream.asgi import AsgiFastStream
 from faststream.kafka import KafkaBroker

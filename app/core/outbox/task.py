@@ -5,7 +5,6 @@ from dishka.integrations.taskiq import FromDishka, inject
 from taskiq import AsyncBroker
 
 from app.core.configs.app import app_config
-from app.core.outbox.metrics import OUTBOX_CLEANUP_DELETED
 from app.core.outbox.repository import OutboxRepository
 from app.core.services.queues.task import BaseTask
 
@@ -40,9 +39,6 @@ class OutboxCleanupTask(BaseTask):
             total_deleted += deleted
             if deleted < app_config.OUTBOX_CLEANUP_BATCH_SIZE:
                 break
-
-        if total_deleted:
-            OUTBOX_CLEANUP_DELETED.inc(total_deleted)
 
         logger.info(
             "Outbox cleanup finished",

@@ -30,7 +30,6 @@ from app.chats.models.read_receipts import ReadReceipt
 from app.core.db.repository import CacheRepository, IRepository
 
 UserChatRow = tuple[Chat, ChatMember, ReadReceipt | None, Message | None]
-UserChatStmtRow = tuple[Chat, ChatMember, ReadReceipt, Message]
 
 _PUBLIC_CHAT_TYPES = (ChatType.GROUP, ChatType.SUPERGROUP, ChatType.CHANNEL)
 
@@ -214,7 +213,7 @@ class ChatRepository(IRepository[Chat], CacheRepository):
 
         result = await self.session.execute(stmt)
 
-        row = result.tuples().first()
+        row = result.first()
         if row is None:
             raise NotFoundChatError(chat_id=str(chat_id))
 
@@ -331,14 +330,14 @@ class ChatRepository(IRepository[Chat], CacheRepository):
             result = await self.session.execute(stmt)
             members = [
                 DeliveryMember(user_id=int(user_id), notifications_muted_until=muted_until)
-                for user_id, muted_until in result.tuples()
+                for user_id, muted_until in result
             ]
             if not members:
                 break
             yield members
             last_user_id = members[-1].user_id
 
-    def _user_chats_stmt(self, user_id: int, archived: bool) -> Select[UserChatStmtRow]:
+    def _user_chats_stmt(self, user_id: int, archived: bool) -> Select[Chat, ChatMember, ReadReceipt, Message]:
         author_profile = aliased(ChatUserProfile, name="author_profile")
         member_profile = aliased(ChatUserProfile, name="member_profile")
 
@@ -404,7 +403,7 @@ class ChatRepository(IRepository[Chat], CacheRepository):
             )
 
         result = await self.session.execute(stmt)
-        return list(result.tuples())
+        return list(result)
 
     async def get_pinned_chats(
         self,
@@ -419,7 +418,7 @@ class ChatRepository(IRepository[Chat], CacheRepository):
             .limit(limit)
         )
         result = await self.session.execute(stmt)
-        return list(result.tuples())
+        return list(result)
 
     async def count_pinned_chats(self, user_id: int) -> int:
         stmt = (
@@ -471,7 +470,7 @@ class ChatRepository(IRepository[Chat], CacheRepository):
         result = await self.session.execute(stmt)
 
         counterparts: dict[UUID, list[ChatCounterpart]] = {}
-        for chat_id, member_id, profile in result.tuples():
+        for chat_id, member_id, profile in result:
             counterparts.setdefault(chat_id, []).append(
                 ChatCounterpart(chat_id=chat_id, user_id=member_id, profile=profile)
             )

@@ -19,7 +19,25 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
-class UpdatedFcmTokenEvent(BaseEvent):
+class CreatedDeviceEvent(BaseEvent):
+    device_id: str
+    user_id: int
+    did: str
+
+    device_name: str
+    platform: str
+    os_version: str | None
+    app_version: str | None
+    fcm_token: str | None
+
+    __event_name__ = "auth.device.created"
+
+    def get_aggregate_id(self) -> str:
+        return str(self.user_id)
+
+
+@dataclass(frozen=True)
+class UpdatedDeviceEvent(BaseEvent):
     device_id: str
     user_id: int
     did: str
@@ -74,7 +92,7 @@ class Device(BaseModel):
         app_version: str | None,
         fcm_token: str | None,
     ) -> Self:
-        return cls(
+        instance = cls(
             id=uuid7(),
             user_id=user_id,
             did=did,
@@ -84,11 +102,24 @@ class Device(BaseModel):
             app_version=app_version,
             fcm_token=fcm_token,
         )
+        instance.register_event(
+            CreatedDeviceEvent(
+                device_id=str(instance.id),
+                user_id=instance.user_id,
+                did=instance.did,
+                device_name=instance.device_name,
+                platform=instance.platform,
+                os_version=instance.os_version,
+                app_version=instance.app_version,
+                fcm_token=instance.fcm_token
+            )
+        )
+        return instance
 
     def update_fcm_token(self, fcm_token: str) -> None:
         self.fcm_token = fcm_token
         self.register_event(
-            UpdatedFcmTokenEvent(
+            UpdatedDeviceEvent(
                 device_id=str(self.id),
                 user_id=self.user_id,
                 did=self.did,

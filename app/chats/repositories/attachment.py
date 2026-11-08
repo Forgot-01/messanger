@@ -64,7 +64,7 @@ class AttachmentRepository(IRepository[MessageAttachment], CacheRepository):
                 .limit(limit)
             )
             result = await self.session.execute(stmt)
-            rows.extend(result.tuples())
+            rows.extend(result)
 
         rows.sort(key=lambda row: (row[0].message_seq or 0, row[0].id), reverse=True)
         return rows[:limit]

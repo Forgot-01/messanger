@@ -85,4 +85,4 @@ class ChatPinnedMessageRepository(IRepository[ChatPinnedMessage]):
             .limit(limit + 1)
         )
         result = await self.session.execute(stmt)
-        return list(result.tuples())
+        return list(result)

@@ -132,4 +132,4 @@ class ChatJoinRequestRepository(IRepository[ChatJoinRequest]):
             )
 
         result = await self.session.execute(stmt)
-        return list(result.tuples())
+        return list(result)

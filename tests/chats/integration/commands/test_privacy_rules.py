@@ -20,9 +20,9 @@ from app.chats.models.privacy import ChatUserContact, ChatUserPrivacyException
 from app.chats.models.profile import ChatUserProfile
 from app.chats.queries.chats.get_members import GetChatMembersQuery, GetChatMembersQueryHandler
 from app.chats.queries.messages.get_list import GetMessagesQuery, GetMessagesQueryHandler
-from app.privacy.utils import PrivacyRule
 from app.core.services.auth.dto import UserJWTData
 from app.core.websocket.presence import PresenceService
+from app.privacy.utils import PrivacyRule
 from tests.support.http import assert_presigned_url
 
 AVATAR_KEY = "{user_id}/64.jpg"
