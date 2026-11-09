@@ -1,7 +1,7 @@
 from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any
+from typing import Never
 
 import orjson
 from sqlalchemy import and_, delete, func, literal_column, or_, select, tuple_, update
@@ -142,7 +142,7 @@ class ContactRepository(IRepository[UserContact]):
         ]
 
         insert_stmt = insert(UserContact).values(values)
-        upsert_stmt: ReturningInsert[Any] = insert_stmt.on_conflict_do_update(
+        upsert_stmt: ReturningInsert[int, Never] = insert_stmt.on_conflict_do_update(
             index_elements=[UserContact.owner_id, UserContact.contact_id],
             set_={
                 "first_name": func.coalesce(insert_stmt.excluded.first_name, UserContact.first_name),
@@ -175,7 +175,7 @@ class ContactRepository(IRepository[UserContact]):
         ]
 
         insert_stmt = insert(UserContact).values(values)
-        upsert_stmt: ReturningInsert[Any] = insert_stmt.on_conflict_do_update(
+        upsert_stmt: ReturningInsert[int, int, Never] = insert_stmt.on_conflict_do_update(
             index_elements=[UserContact.owner_id, UserContact.contact_id],
             set_={
                 "first_name": func.coalesce(insert_stmt.excluded.first_name, UserContact.first_name),

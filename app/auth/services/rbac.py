@@ -12,7 +12,7 @@ from app.core.services.auth.rbac import RBACManagerInterface
 
 
 @dataclass
-class AuthRBACManager(RBACManagerInterface):
+class AuthRBACManager(RBACManagerInterface[AuthUserJWTData]):
     system_roles: set[str] = field(init=False)
     protected_permissions: set[str] = field(init=False)
 

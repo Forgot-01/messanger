@@ -33,6 +33,13 @@ class WSConnection:
     heartbeat_task: asyncio.Task[None] | None = field(default=None)
     closed: bool = field(default=False)
 
+    @property
+    def is_active(self) -> bool:
+        return (
+            not self.closed
+            and self.websocket.application_state == WebSocketState.CONNECTED
+        )
+
     async def start(self) -> None:
         await self._start_writer()
         await self._start_heartbeat()
@@ -76,7 +83,7 @@ class WSConnection:
     async def _heartbeat_loop(self) -> None:
         try:
             while (
-                not self.closed
+                not self.is_active
                 and self.websocket.application_state == WebSocketState.CONNECTED
             ):
                 await asyncio.sleep(app_config.WS_HEARTBEAT_INTERVAL)

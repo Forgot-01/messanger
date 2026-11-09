@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
-from typing import Self
+from typing import Self, assert_never
 from uuid import UUID, uuid7
 
 from sqlalchemy import (
@@ -255,15 +255,17 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
 
     @staticmethod
     def member_limit(chat_type: ChatType) -> int:
-        if chat_type == ChatType.DIRECT:
-            return 2
-        if chat_type == ChatType.GROUP:
-            return chat_config.MAX_GROUP_MEMBERS
-        if chat_type == ChatType.SUPERGROUP:
-            return chat_config.MAX_SUPERGROUP_MEMBERS
-        if chat_type == ChatType.CHANNEL:
-            return chat_config.MAX_CHANNEL_SUBSCRIBERS
-        return chat_config.MAX_MEMBERS
+        match chat_type:
+            case ChatType.DIRECT:
+                return 2
+            case ChatType.GROUP:
+                return chat_config.MAX_GROUP_MEMBERS
+            case ChatType.SUPERGROUP:
+                return chat_config.MAX_SUPERGROUP_MEMBERS
+            case ChatType.CHANNEL:
+                return chat_config.MAX_CHANNEL_SUBSCRIBERS
+            case _:
+                assert_never(chat_type)
 
     @staticmethod
     def default_member_role(chat_type: ChatType) -> ChatRoleId:

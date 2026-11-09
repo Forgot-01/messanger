@@ -3,12 +3,17 @@ from abc import ABC, abstractmethod
 from app.core.services.auth.dto import UserJWTData
 
 
-class RBACManagerInterface(ABC):
-    @abstractmethod
-    def is_system_user(self, jwt_data: UserJWTData) -> bool: ...
+class RBACManagerInterface[JWTDataT: UserJWTData](ABC):
 
     @abstractmethod
-    def check_permission(self, jwt_data: UserJWTData, permissions: set[str]) -> bool: ...
+    def is_system_user(self, jwt_data: JWTDataT) -> bool: ...
+
+    @abstractmethod
+    def check_permission(
+        self,
+        jwt_data: JWTDataT,
+        permissions: set[str],
+    ) -> bool: ...
 
 
 # В том случае если не нужен модуль auth

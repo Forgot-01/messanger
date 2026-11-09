@@ -45,14 +45,14 @@ class AppConfig(BaseConfig):
     POSTGRES_DB: str = ""
     SQL_ECHO: bool = False
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def app_url(self) -> str:
         if self.ENVIRONMENT in ["local", "testing"]:
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def postgres_url(self) -> PostgresDsn:
         return MultiHostUrl.build(
@@ -67,7 +67,7 @@ class AppConfig(BaseConfig):
     REDIS_HOST: str = ""
     REDIS_PORT: int = 6379
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def redis_url(self) -> str:
         return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"
@@ -82,17 +82,17 @@ class AppConfig(BaseConfig):
     STORAGE_PUBLIC_SECURE: bool = True
     STORAGE_SSE: bool = False
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def storage_url(self) -> str:
         return f"{self.STORAGE_HOST}:{self.STORAGE_PORT}"
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def storage_endpoint_url(self) -> str:
         return _with_scheme(self.storage_url, secure=self.STORAGE_SECURE)
 
-    @computed_field
+    @computed_field # type: ignore[prop-decorator]
     @property
     def storage_public_endpoint_url(self) -> str:
         if not self.STORAGE_PUBLIC_URL:

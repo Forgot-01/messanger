@@ -16,8 +16,16 @@ OWNER_PERMISSIONS = {
 }
 
 ADMIN_PERMISSIONS = {
-    **OWNER_PERMISSIONS,
-    "chat:delete": False,
+    "chat:delete": False, "chat:update": True, "chat:get": True,
+    "member:invite": True, "member:kick": True, "member:ban": True, "member:mute": True,
+    "role:change": True, "permission:update": True,
+    "message:read": True,
+    "message:delete": True, "message:send": True, "message:pin": True,
+    "message:send_admin_only": True,
+    "settings:update": True, "settings:get": True,
+    "channel:publish": True, "channel:edit": True, "channel:manage_subscribers": True,
+    "slowmode:bypass": True,
+    "call:join": True, "call:mute_member": True, "call:end": True,
 }
 
 EDITOR_PERMISSIONS = {

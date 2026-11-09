@@ -1,11 +1,10 @@
-from typing import Any, Union
+from functools import reduce
+from operator import or_
+from typing import Any, cast
 
 from pydantic import ConfigDict, create_model
 
-from app.core.api.schemas import (
-    ErrorDetail,
-    ErrorResponse,
-)
+from app.core.api.schemas import ErrorDetail, ErrorResponse
 from app.core.exceptions import ApplicationError
 
 
@@ -47,10 +46,19 @@ def create_response(
             },
         }
 
+    if not models:
+        raise ValueError("At least one error model is required")
+
+    param_model: Any
+
     if len(models) == 1:
-        param_model = ErrorResponse[next(iter(models))]
+        detail_type: Any = models[0]
+        param_model = cast(Any, ErrorResponse)[detail_type]
+
         param_model.model_config = ConfigDict(
-            json_schema_extra={"schema_extra": {"example": next(iter(examples.values()))["value"]}}
+            json_schema_extra={
+                "example": next(iter(examples.values()))["value"]
+            }
         )
 
         content = {
@@ -59,16 +67,20 @@ def create_response(
             }
         }
     else:
-        union_type = Union[*models]
-        param_model = ErrorResponse[union_type]
+        union_type: Any = reduce(or_, models)
+        param_model = cast(Any, ErrorResponse)[union_type]
+
         first_example = next(iter(examples.values()))["value"]
+
         param_model.model_config = ConfigDict(
             json_schema_extra={
-                "schema_extra": {
-                    "example": first_example, "examples": {k: v["value"] for k, v in examples.items()}
-                }
-            },
+                "example": first_example,
+                "examples": {
+                    k: v["value"] for k, v in examples.items()
+                },
+            }
         )
+
         content = {
             "application/json": {
                 "examples": examples,
