@@ -25,7 +25,7 @@ from app.notifications.queries.notifications.get_unread_count import (
     GetUnreadNotificationsCountQuery,
     GetUnreadNotificationsCountQueryHandler,
 )
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 from app.notifications.repositories.notifications import NotificationRepository
 from app.notifications.services.push.base import PushService
 from app.notifications.services.push.firebase.init import init_firebase_app
@@ -37,7 +37,7 @@ class NotificationModuleProvider(Provider):
 
     repositories = provide_all(
         NotificationRepository,
-        DeviceRepository
+        NotificationDeviceRepository
     )
 
     handlers = provide_all(
@@ -61,7 +61,7 @@ class NotificationModuleProvider(Provider):
     def push_service(
         self,
         firebase_app: App,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
     ) -> PushService:
         return FirebaseAdminPushService(
             firebase_app=firebase_app,

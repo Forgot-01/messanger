@@ -126,7 +126,7 @@ class User(BaseModel, DateMixin, SoftDeleteMixin):
     @classmethod
     def create(
         cls, email: str, username: str, password_hash: str | None,
-        roles: set[Role], is_verified: bool=False
+        roles: set[Role], permissions: set[Permission] | None=None, is_verified: bool=False
     ) -> User:
         user = User(
             email=email,
@@ -135,7 +135,7 @@ class User(BaseModel, DateMixin, SoftDeleteMixin):
             roles=roles,
             is_active=True,
             is_verified=is_verified,
-            permissions=set(),
+            permissions=permissions or set(),
             sessions=[],
         )
 

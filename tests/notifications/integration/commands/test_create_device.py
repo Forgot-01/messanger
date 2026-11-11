@@ -10,7 +10,7 @@ from app.notifications.commands.devices.create import (
     CreateUserDeviceCommandHandler,
 )
 from app.notifications.exceptions import AlreadyExistDeviceTokenError
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 
 
 @pytest.mark.integration
@@ -27,7 +27,7 @@ class TestCreateUserDeviceCommand:
     async def test_device_is_bound_to_the_user_from_the_token(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         user_jwt: UserJWTData,
     ) -> None:
         await handler.handle(
@@ -52,7 +52,7 @@ class TestCreateUserDeviceCommand:
     async def test_every_platform_is_accepted(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         user_jwt: UserJWTData,
         platform: str,
     ) -> None:
@@ -71,7 +71,7 @@ class TestCreateUserDeviceCommand:
     async def test_user_can_register_several_devices(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         user_jwt: UserJWTData,
     ) -> None:
         for i in range(3):
@@ -91,7 +91,7 @@ class TestCreateUserDeviceCommand:
     async def test_duplicate_token_is_rejected_by_the_handler(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         user_jwt: UserJWTData,
     ) -> None:
         command = CreateUserDeviceCommand(
@@ -111,7 +111,7 @@ class TestCreateUserDeviceCommand:
     async def test_deactivated_token_is_reactivated_instead_of_duplicated(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         db_session: AsyncSession,
         user_jwt: UserJWTData,
     ) -> None:
@@ -137,7 +137,7 @@ class TestCreateUserDeviceCommand:
     async def test_reactivation_keeps_the_original_row(
         self,
         handler: CreateUserDeviceCommandHandler,
-        device_repository: DeviceRepository,
+        device_repository: NotificationDeviceRepository,
         db_session: AsyncSession,
         user_jwt: UserJWTData,
     ) -> None:

@@ -7,7 +7,7 @@ from app.core.commands import BaseCommand, BaseCommandHandler
 from app.core.services.auth.dto import UserJWTData
 from app.notifications.exceptions import AlreadyExistDeviceTokenError
 from app.notifications.models.device import UserDeviceToken
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class CreateUserDeviceCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class CreateUserDeviceCommandHandler(BaseCommandHandler[CreateUserDeviceCommand, None]):
-    device_repository: DeviceRepository
+    device_repository: NotificationDeviceRepository
     session: AsyncSession
 
     async def handle(self, command: CreateUserDeviceCommand) -> None:

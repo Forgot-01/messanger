@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.commands import BaseCommand, BaseCommandHandler
 from app.notifications.exceptions import NotFoundUserDeviceError
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ class DeleteUserDeviceCommand(BaseCommand):
 
 @dataclass(frozen=True)
 class DeleteUserDeviceCommandHandler(BaseCommandHandler[DeleteUserDeviceCommand, None]):
-    device_repository: DeviceRepository
+    device_repository: NotificationDeviceRepository
     session: AsyncSession
 
     async def handle(self, command: DeleteUserDeviceCommand) -> None:

@@ -17,12 +17,10 @@ from app.chats.repositories.message import MessageRepository
 from app.chats.repositories.reaction import MessageReactionRepository
 from app.chats.repositories.reads import ReadReceiptRepository
 from app.chats.services.access import ChatAccessService
-from app.chats.services.livekit_service import LiveKitService
 from app.chats.services.messages import MessageService
 from app.core.services.auth.dto import UserJWTData
 from app.core.services.storage.service import StorageService
 from app.core.websocket.keys import WebsocketKeys
-from tests.chats.integration.mock import StubLiveKitService
 
 GATEWAY_ID = "gw-test"
 
@@ -70,11 +68,6 @@ def delivered_frames(redis_client: Redis):
         return [json.loads(fields["event"]) for _entry_id, fields in entries] # type: ignore
 
     return _delivered_frames
-
-
-@pytest.fixture
-def livekit() -> LiveKitService:
-    return StubLiveKitService(url="ws://test", api_key="k", api_secret="s")
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from firebase_admin import App, messaging
 
 from app.notifications.models.notification import Notification
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 from app.notifications.services.push.base import PushService
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class FirebaseAdminPushService(PushService):
     firebase_app: App
-    device_repository: DeviceRepository
+    device_repository: NotificationDeviceRepository
     send_batch_limit: int = 500
 
     async def push(self, notification: Notification) -> None:

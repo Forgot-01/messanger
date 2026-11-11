@@ -8,7 +8,7 @@ from app.core.db.repository import IRepository
 
 
 @dataclass
-class UserDeviceRepository(IRepository[Device]):
+class DeviceRepository(IRepository[Device]):
     redis: Redis
 
     async def create(self, device: Device) -> None:
@@ -21,3 +21,7 @@ class UserDeviceRepository(IRepository[Device]):
         result = await self.session.execute(stmt)
         return result.scalar()
 
+    async def get_user_devices(self, user_id: int) -> list[Device]:
+        stmt = select(Device).where(Device.user_id==user_id)
+        result = await self.session.execute(stmt)
+        return list(result.scalars())

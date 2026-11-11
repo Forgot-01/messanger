@@ -4,6 +4,7 @@ from uuid import UUID
 
 from redis.asyncio import Redis
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.auth.config import auth_config
 from app.auth.models.session import Session
@@ -13,8 +14,11 @@ from app.core.utils import fromtimestamp, now_utc
 
 @dataclass
 class SessionRepository(IRepository[Session]):
-    async def get_by_id(self, session_id: UUID) -> Session | None:
+    async def get_by_id(self, session_id: UUID, with_device: bool=True) -> Session | None:
         query = select(Session).where(Session.id == session_id)
+        if with_device:
+            query = query.options(selectinload(Session.device))
+
         result = await self.session.execute(query)
         return result.scalar()
 

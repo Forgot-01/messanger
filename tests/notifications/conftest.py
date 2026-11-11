@@ -5,7 +5,7 @@ from dishka import AsyncContainer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.notifications.models.notification import Notification, NotificationType
-from app.notifications.repositories.devices import DeviceRepository
+from app.notifications.repositories.devices import NotificationDeviceRepository
 from app.notifications.repositories.notifications import NotificationRepository
 
 
@@ -15,8 +15,8 @@ async def notification_repository(request_container: AsyncContainer) -> Notifica
 
 
 @pytest.fixture
-async def device_repository(request_container: AsyncContainer) -> DeviceRepository:
-    return await request_container.get(DeviceRepository)
+async def device_repository(request_container: AsyncContainer) -> NotificationDeviceRepository:
+    return await request_container.get(NotificationDeviceRepository)
 
 
 @pytest.fixture

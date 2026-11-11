@@ -48,7 +48,7 @@ from app.auth.queries.sessions.get_list import GetListSessionQuery, GetListSessi
 from app.auth.queries.sessions.get_list_by_user import GetListSessionsUserQuery, GetListSessionsUserQueryHandler
 from app.auth.queries.users.check_username import CheckUsernameQuery, CheckUsernameQueryHandler
 from app.auth.queries.users.get_list import GetListUserQuery, GetListUserQueryHandler
-from app.auth.repositories.device import UserDeviceRepository
+from app.auth.repositories.device import DeviceRepository
 from app.auth.repositories.oauth import OauthAccountRepository, OAuthCodeRepository
 from app.auth.repositories.permission import PermissionInvalidateRepository, PermissionRepository
 from app.auth.repositories.role import RoleInvalidateRepository, RoleRepository
@@ -73,7 +73,7 @@ class AuthModuleProvider(Provider):
     repositories = provide_all(
         UserRepository,
         SessionRepository,
-        UserDeviceRepository,
+        DeviceRepository,
         RoleRepository,
         PermissionRepository,
         OauthAccountRepository,

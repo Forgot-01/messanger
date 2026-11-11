@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import INET
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.auth.models.device import Device
 from app.core.db.base_model import BaseModel
 from app.core.events.event import BaseEvent
 from app.core.utils import now_utc
@@ -68,7 +69,11 @@ class Session(BaseModel):
         BigInteger,
         ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    device_id: Mapped[UUID] = mapped_column(SA_UUID(as_uuid=True), index=True, nullable=False)
+    device_id: Mapped[UUID] = mapped_column(
+        SA_UUID(as_uuid=True),
+        ForeignKey("devices.id", ondelete="CASCADE"),
+        index=True, nullable=False
+    )
 
     ip_address: Mapped[str] = mapped_column(INET, nullable=False)
     user_agent: Mapped[str] = mapped_column(String, nullable=False)
@@ -79,6 +84,7 @@ class Session(BaseModel):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     user: Mapped[User] = relationship("User", back_populates="sessions")
+    device: Mapped[Device] = relationship("Device")
 
     __table_args__ = (
         Index("idx_sessions_user_device", "user_id", "device_id"),
@@ -112,8 +118,9 @@ class Session(BaseModel):
         return instance
 
     def deactivate(self) -> None:
-        self.revoked_at = now_utc()
-        self.last_activity = now_utc()
+        now = now_utc()
+        self.revoked_at = now
+        self.last_activity = now
         self.register_event(
             DeactivateSessionEvent(
                 user_id=self.user_id,

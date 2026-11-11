@@ -2,13 +2,13 @@ from dataclasses import dataclass
 
 from app.auth.models.device import Device
 from app.auth.models.session import Session
-from app.auth.repositories.device import UserDeviceRepository
+from app.auth.repositories.device import DeviceRepository
 from app.auth.repositories.session import SessionRepository
 
 
 @dataclass
 class DeviceSessionManager:
-    device_repository: UserDeviceRepository
+    device_repository: DeviceRepository
     session_repository: SessionRepository
 
     async def get_or_create_session(
