@@ -32,7 +32,7 @@ class SendResetPasswordCommandHandler(BaseCommandHandler[SendResetPasswordComman
         reset_token = secrets.token_urlsafe(4)
         hashed_token = hashlib.sha256(reset_token.encode()).hexdigest()
 
-        await self.token_repository.add_token(
+        await self.token_repository.add_code(
             hashed_token,
             user_id=user.id,
             expiration=timedelta(minutes=auth_config.EMAIL_RESET_TOKEN_EXPIRE_MINUTES)

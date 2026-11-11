@@ -44,13 +44,14 @@ class SessionRepository(IRepository[Session]):
 class TokenBlacklistRepository:
     client: Redis
 
-    async def add_jwt_token(self, jti: str, expiration: timedelta | None=None) -> None:
-        await self.client.set(
-            f"revoked:{jti}",  str(now_utc().timestamp()), ex=expiration
+    async def add_jwt_token(self, jti: str, expiration: timedelta | None=None) -> bool:
+        exist = await self.client.set(
+            f"revoked:{jti}",  str(now_utc().timestamp()), ex=expiration, get=True
         )
+        if exist:
+            return True
 
-    async def is_token_revoked(self, jti: str) -> bool:
-        return bool(await self.client.exists(f"revoked:{jti}"))
+        return False
 
     async def add_user(self, user_id: int, expiration: timedelta | None=None) -> None:
         if expiration is None:
@@ -64,16 +65,13 @@ class TokenBlacklistRepository:
         time_str = await self.client.get(f"user:{user_id}") or "0"
         return fromtimestamp(float(time_str))
 
-    async def add_token(self, token: str, user_id: int, expiration: timedelta) -> None:
+    async def add_code(self, token: str, user_id: int, expiration: timedelta) -> None:
         await self.client.set(
             token,
             value=user_id,
             ex=expiration
         )
 
-    async def is_valid_token(self, token: str) -> int | None:
-        user_id = await self.client.get(token)
+    async def is_valid_code(self, token: str) -> int | None:
+        user_id = await self.client.getdel(token)
         return int(user_id) if user_id is not None else None
-
-    async def invalidate_token(self, token: str) -> None:
-        await self.client.delete(token)

@@ -62,9 +62,6 @@ class AuthJWTManager(JWTManager):
         return TokenGroup(access_token=access_token, refresh_token=refresh_token)
 
     async def refresh_tokens(self, refresh_token: Token, security_user: AuthUserJWTData) -> TokenGroup:
-        if await self.token_blacklist.is_token_revoked(refresh_token.jti):
-            raise TokenInBlacklistError
-
         await self.revoke_token(refresh_token)
 
         token_iat_dt = fromtimestamp(refresh_token.iat)
@@ -93,5 +90,6 @@ class AuthJWTManager(JWTManager):
         token_exp_dt = fromtimestamp(token.exp)
 
         seconds_until_expiry = token_exp_dt - current_time
-        await self.token_blacklist.add_jwt_token(token.jti, seconds_until_expiry)
-
+        exist = await self.token_blacklist.add_jwt_token(token.jti, seconds_until_expiry)
+        if exist:
+            raise TokenInBlacklistError

@@ -33,7 +33,7 @@ class SendVerifyCommandHandler(BaseCommandHandler[SendVerifyCommand, None]):
 
         verify_token = secrets.token_urlsafe(4)
         hashed_token = hashlib.sha256(verify_token.encode()).hexdigest()
-        await self.token_repository.add_token(
+        await self.token_repository.add_code(
             hashed_token,
             user_id=user.id,
             expiration=timedelta(minutes=auth_config.EMAIL_RESET_TOKEN_EXPIRE_MINUTES)

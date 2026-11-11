@@ -13,6 +13,7 @@ from app.core.services.auth.exceptions import InvalidTokenError
 
 logger = logging.getLogger(__name__)
 
+
 @dataclass(frozen=True)
 class VerifyCommand(BaseCommand):
     token: str
@@ -28,7 +29,7 @@ class VerifyCommandHandler(BaseCommandHandler[VerifyCommand, None]):
     async def handle(self, command: VerifyCommand) -> None:
 
         hash_token = hashlib.sha256(command.token.encode()).hexdigest()
-        user_id = await self.token_repository.is_valid_token(token=hash_token)
+        user_id = await self.token_repository.is_valid_code(token=hash_token)
 
         if user_id is None:
             raise InvalidTokenError(token=command.token)
@@ -39,7 +40,6 @@ class VerifyCommandHandler(BaseCommandHandler[VerifyCommand, None]):
             raise NotFoundUserError(user_by=user_id, user_field="id")
 
         user.verify()
-        await self.token_repository.invalidate_token(hash_token)
         await self.event_bus.publish(user.pull_events())
         await self.session.commit()
 

@@ -41,7 +41,7 @@ class LogoutCommandHandler(BaseCommandHandler[LogoutCommand, None]):
             session_id=UUID(refresh_token.sid),
         )
 
-        if not session:
+        if not session or not session.is_active:
             raise NotFoundOrInactiveSessionError
 
         session.deactivate()

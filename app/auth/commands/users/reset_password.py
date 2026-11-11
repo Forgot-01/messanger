@@ -33,7 +33,7 @@ class ResetPasswordCommandHandler(BaseCommandHandler[ResetPasswordCommand, None]
 
     async def handle(self, command: ResetPasswordCommand) -> None:
         hash_token = hashlib.sha256(command.token.encode()).hexdigest()
-        user_id = await self.token_repository.is_valid_token(token=hash_token)
+        user_id = await self.token_repository.is_valid_code(token=hash_token)
 
         if user_id is None:
             raise InvalidTokenError(token=command.token)
@@ -47,7 +47,6 @@ class ResetPasswordCommandHandler(BaseCommandHandler[ResetPasswordCommand, None]
             raise PasswordMismatchError
 
         user.password_reset(self.hash_service.hash_password(command.password))
-        await self.token_repository.invalidate_token(token=hash_token)
         await self.token_repository.add_user(user.id, expiration=timedelta(days=auth_config.REFRESH_TOKEN_EXPIRE_DAYS))
 
         await self.event_bus.publish(user.pull_events())
