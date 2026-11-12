@@ -74,10 +74,12 @@ def create_response(
 
         param_model.model_config = ConfigDict(
             json_schema_extra={
-                "example": first_example,
-                "examples": {
-                    k: v["value"] for k, v in examples.items()
-                },
+                "schema_extra": {
+                    "example": first_example,
+                    "examples": [
+                        {k: v["value"] for k, v in examples.items()}
+                    ],
+                }
             }
         )
 

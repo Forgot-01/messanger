@@ -35,7 +35,8 @@ class SendResetPasswordCommandHandler(BaseCommandHandler[SendResetPasswordComman
         await self.token_repository.add_code(
             hashed_token,
             user_id=user.id,
-            expiration=timedelta(minutes=auth_config.EMAIL_RESET_TOKEN_EXPIRE_MINUTES)
+            expiration=timedelta(minutes=auth_config.EMAIL_RESET_TOKEN_EXPIRE_MINUTES),
+            type_code="reset_password"
         )
 
         email_data = EmailData(subject="Password reset code", recipient=user.email)

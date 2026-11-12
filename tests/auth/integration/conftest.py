@@ -2,6 +2,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.commands.auth.login import LoginCommandHandler
+from app.auth.dtos.user import AuthUserJWTData
 from app.auth.models.permission import Permission
 from app.auth.models.role import Role
 from app.auth.models.user import User
@@ -106,3 +107,30 @@ def get_user_and_token_group(
         )
         return user, token_group
     return create
+
+
+@pytest.fixture
+def get_user_jwt_data(
+    create_user,
+):
+    async def create(
+        email: str = "base@gmail.com",
+        username: str = "standartser",
+        password: str = "TestPass123!",
+        is_verified: bool = False,
+        role_name: str = "user",
+        permission_names: set[str] | None=None,
+    ):
+
+        user = await create_user(
+            email=email,
+            username=username,
+            password=password,
+            is_verified=is_verified,
+            role_name=role_name,
+            permission_names=permission_names
+        )
+        return user, AuthUserJWTData.create_from_user(user=user, device_id="1", session_id="1")
+
+    return create
+

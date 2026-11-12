@@ -1,5 +1,5 @@
-from dishka import AsyncContainer
 import pytest
+from dishka import AsyncContainer
 
 from app.auth.commands.users.register import RegisterCommand, RegisterCommandHandler
 from app.auth.dtos.user import UserDTO

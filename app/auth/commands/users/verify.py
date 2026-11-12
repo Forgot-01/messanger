@@ -29,7 +29,7 @@ class VerifyCommandHandler(BaseCommandHandler[VerifyCommand, None]):
     async def handle(self, command: VerifyCommand) -> None:
 
         hash_token = hashlib.sha256(command.token.encode()).hexdigest()
-        user_id = await self.token_repository.is_valid_code(token=hash_token)
+        user_id = await self.token_repository.is_valid_code(code=hash_token)
 
         if user_id is None:
             raise InvalidTokenError(token=command.token)

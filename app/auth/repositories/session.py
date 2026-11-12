@@ -65,13 +65,13 @@ class TokenBlacklistRepository:
         time_str = await self.client.get(f"user:{user_id}") or "0"
         return fromtimestamp(float(time_str))
 
-    async def add_code(self, token: str, user_id: int, expiration: timedelta) -> None:
+    async def add_code(self, code: str, user_id: int, expiration: timedelta, type_code: str="verify") -> None:
         await self.client.set(
-            token,
+            f"{type_code}:{code}",
             value=user_id,
             ex=expiration
         )
 
-    async def is_valid_code(self, token: str) -> int | None:
-        user_id = await self.client.getdel(token)
+    async def is_valid_code(self, code: str, type_code: str="verify") -> int | None:
+        user_id = await self.client.getdel(f"{type_code}:{code}")
         return int(user_id) if user_id is not None else None
