@@ -41,7 +41,7 @@ class ChangePasswordCommandHandler(BaseCommandHandler[ChangePasswordCommand, Non
 
         if (
             user.password_hash is None or
-            self.hash_service.verify_password(command.old_password, user.password_hash) or
+            not self.hash_service.verify_password(command.old_password, user.password_hash) or
             command.new_password != command.new_password_repeat
         ):
             raise PasswordMismatchError

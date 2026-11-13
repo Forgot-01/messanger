@@ -1,4 +1,3 @@
-
 import pytest
 from dishka import AsyncContainer
 

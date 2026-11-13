@@ -41,6 +41,7 @@ class CreatePermissionCommandHandler(BaseCommandHandler[CreatePermissionCommand,
         permission = Permission(name=command.name)
         await self.permission_repository.create(permission)
         await self.session.commit()
+
         logger.info("Create permission", extra={
             "created_by": command.user_jwt_data.id,
             "permission_name": command.name
