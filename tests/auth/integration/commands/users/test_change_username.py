@@ -50,7 +50,7 @@ class TestChangeUsernameCommand:
                     user_jwt_data=user_jwt_data
                 )
             )
-            assert error.value.username == "forgot"
+        assert error.value.username == "forgot"
 
         with pytest.raises(InvalidUsernameError) as error:
             await handler.handle(
@@ -59,7 +59,7 @@ class TestChangeUsernameCommand:
                     user_jwt_data=user_jwt_data
                 )
             )
-            assert error.value.reason == "format"
+        assert error.value.reason == "format"
 
         with pytest.raises(InvalidUsernameError) as error:
             await handler.handle(
@@ -69,7 +69,7 @@ class TestChangeUsernameCommand:
                 )
             )
 
-            assert error.value.reason == "length"
+        assert error.value.reason == "length"
 
         with pytest.raises(InvalidUsernameError) as error:
             await handler.handle(
@@ -79,7 +79,7 @@ class TestChangeUsernameCommand:
                 )
             )
 
-            assert error.value.reason == "length"
+        assert error.value.reason == "length"
 
         with pytest.raises(InvalidUsernameError) as error:
             await handler.handle(
@@ -89,4 +89,4 @@ class TestChangeUsernameCommand:
                 )
             )
 
-            assert error.value.reason == "reserved"
+        assert error.value.reason == "reserved"
