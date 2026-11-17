@@ -32,7 +32,7 @@ class TestAddPermissionToUserCommand:
             )
         )
 
-        assert any(True for permission in user.permissions if permission.name=="test:create")
+        assert any(permission.name=="test:create" for permission in user.permissions)
         assert await token_blacklist_repository.get_user_blacklist(user.id) != fromtimestamp(float("0"))
 
     async def test_add_permissions(
