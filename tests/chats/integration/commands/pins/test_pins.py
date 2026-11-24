@@ -129,7 +129,7 @@ class TestPinnedMessages:
                 user_jwt_data=make_user_jwt(id="2"), chat_id=group_chat.id, message_id=target.id
             ))
 
-        with pytest.raises(NotChatMemberError):
+        with pytest.raises(AccessDeniedChatError):
             await pin.handle(PinMessageCommand(
                 user_jwt_data=make_user_jwt(id="42"), chat_id=group_chat.id, message_id=target.id
             ))

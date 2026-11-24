@@ -159,7 +159,7 @@ class TestChatModel:
         events = chat.pull_events()
         assert len(events) == 1
         assert isinstance(events[0], LeftChatMemberEvent)
-        assert events[0].user_id == 2
+        assert events[0].target_user_id == 2
 
     def test_leave_owner_raises_access_denied(self) -> None:
         chat = make_group_chat(created_by=1, members_ids=[1, 2, 3])
