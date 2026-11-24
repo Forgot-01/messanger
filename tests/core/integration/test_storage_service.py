@@ -6,7 +6,6 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
-from app.chats.config import chat_config
 from app.core.services.storage.aioboto.client import S3Client
 from app.core.services.storage.aioboto.service import AioBotoStorageService
 from app.core.services.storage.dtos import ContentTypeFilter, UploadFile, UploadFilePost
@@ -18,7 +17,7 @@ from app.core.services.storage.exceptions import (
 from app.core.services.storage.policy import Policy
 
 PRIVATE_BUCKET = "base"
-PUBLIC_BUCKET = chat_config.CHAT_AVATAR_BUCKET
+PUBLIC_BUCKET = "public"
 
 
 def _key(suffix: str = ".bin") -> str:

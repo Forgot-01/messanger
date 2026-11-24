@@ -1,7 +1,10 @@
-from dishka import AsyncContainer
 import pytest
+from dishka import AsyncContainer
 
-from app.auth.commands.permissions.add_permission_user import AddPermissionToUserCommand, AddPermissionToUserCommandHandler
+from app.auth.commands.permissions.add_permission_user import (
+    AddPermissionToUserCommand,
+    AddPermissionToUserCommandHandler,
+)
 from app.auth.exceptions import NotFoundPermissionsError
 from app.core.utils import fromtimestamp
 

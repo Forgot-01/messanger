@@ -4,7 +4,7 @@ from app.auth.dtos.tokens import TokenType
 from app.auth.dtos.user import AuthUserJWTData
 from app.auth.services.jwt import AuthJWTManager
 from app.core.services.auth.dto import JwtTokenType
-from app.core.services.auth.exceptions import ExpiredTokenError, InvalidTokenError
+from app.core.services.auth.exceptions import InvalidTokenError
 
 
 @pytest.mark.unit

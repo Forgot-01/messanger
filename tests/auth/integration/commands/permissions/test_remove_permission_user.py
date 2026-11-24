@@ -1,9 +1,9 @@
-from dishka import AsyncContainer
 import pytest
+from dishka import AsyncContainer
 
 from app.auth.commands.permissions.remove_permission_user import (
     DeletePermissionToUserCommand,
-    DeletePermissionToUserCommandHandler
+    DeletePermissionToUserCommandHandler,
 )
 from app.auth.exceptions import NotFoundPermissionsError
 from app.core.utils import fromtimestamp
@@ -42,7 +42,7 @@ class TestRemovePermissionToUserCommand:
         assert await token_blacklist_repository.get_user_blacklist(user.id) != fromtimestamp(float("0"))
 
 
-    
+
     async def test_remove_permissions(
         self, handler, get_user_jwt_data, create_permissions, token_blacklist_repository
     ) -> None:

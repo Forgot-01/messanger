@@ -4,7 +4,7 @@ Production-ready модульный монолит на FastAPI: асинхро�
 
 Вдохновлён [Starter Kit](https://github.com/arctikant/fastapi-modular-monolith-starter-kit).
 
-**Что описано в этом README.** Только два каркасных пакета: `app/core` — инфраструктура (БД, DI, медиатор, фильтры, события/outbox, брокеры, очереди, WebSocket, наблюдаемость) и `app/auth` — **эталонный (reference) модуль**, показывающий, как должен быть устроен любой новый модуль (модели, фильтры, репозитории, команды/запросы, DI-провайдер, роуты). Прикладные модули (`app/profiles`, `app/chats`, `app/notifications`) сознательно не документируются: они строятся по тем же правилам. При добавлении функционала копируйте паттерны из `app/auth`.
+**Что описано в этом README.** Только два каркасных пакета: `app/core` — инфраструктура (БД, DI, медиатор, фильтры, события/outbox, брокеры, очереди, WebSocket, наблюдаемость) и `app/auth` — **эталонный (reference) модуль**, показывающий, как должен быть устроен любой новый модуль (модели, фильтры, репозитории, команды/запросы, DI-провайдер, роуты). При добавлении функционала копируйте паттерны из `app/auth`.
 
 **Один код — четыре процесса** (см. `docker-compose.yaml`):
 
@@ -79,8 +79,8 @@ curl -s localhost:8083/connectors/outbox-connector/status
 ### Линтинг и типы
 
 ```bash
-poetry run ruff check .
-poetry run mypy .
+poetry run ruff check ./app
+poetry run mypy ./app
 poetry run pylint app
 pre-commit run --all-files
 ```
@@ -224,8 +224,6 @@ messanger/
 │                        # db, redis, kafka, debezium, debezium_connector, seaweedfs
 └── pyproject.toml
 ```
-
-> Прикладные модули (`app/profiles`, `app/chats`, `app/notifications`) в дереве опущены сознательно — они повторяют структуру `app/auth` и в этом README не описываются.
 
 ---
 
@@ -686,7 +684,7 @@ await self.user_repository.invalidate_cache()
 
 Сериализация — `app/core/outbox/serializer.py`: `asdict(event)` + `json.dumps(..., default=additionally_serialize)`, поэтому в payload попадают только JSON-совместимые значения (UUID/datetime/Enum приводятся к строкам).
 
-> Топик выводится из имени события, а не задаётся вручную. Все события модуля `auth` уезжают в топик `auth`, `profiles.*` — в `profiles` и т.д. Из-за этого имя события **обязано** содержать хотя бы три сегмента: `EventName.parse()` на двух сегментах кидает `InvalidEventNameError`.
+> Топик выводится из имени события, а не задаётся вручную. Все события модуля `auth` уезжают в топик `auth`, `profiles.*` — в `profiles` и т.д. Из-за этого имя события **обязано** содержать хотя бы три сегмента.
 >
 > Раскладка по колонкам — каноническая для `io.debezium.transforms.outbox.EventRouter`: `aggregate_type` + `aggregate_id` описывают **агрегат**, а не модуль. Роутинг вынесен в отдельную колонку `topic` (в самом паттерне роутят по `aggregate_type`) только потому, что топик здесь модульный, а не на каждый агрегат: меньше топиков и одна группа консьюмеров на модуль. Сама колонка `topic` — единственная вынужденная избыточность; дублировать в строке ещё и модуль под именем `aggregate_type` не нужно.
 
@@ -751,15 +749,16 @@ router = KafkaRouter()
 async def handle(
     event: TypedEventDTO[SomePayload],
     mediator: FromDishka[BaseMediator],
-    idempotency_guard: FromDishka[EventIdempotencyGuard],
+    idempotency: FromDishka[EventIdempotencyGuard],
 ) -> None:
-    if not await idempotency_guard.try_acquire(group=module_config.SOME_GROUP_ID, event_id=event.event_id):
-        return
-    try:
-        await mediator.handle_command(SomeCommand(...))
-    except Exception:
-        await idempotency_guard.release(group=module_config.SOME_GROUP_ID, event_id=event.event_id)
-        raise
+    await idempotency.execute(
+        group=module_config.SOME_GROUP_ID,
+        event_id=event.event_id,
+        callback=lambda: mediator.handle_command(
+            SomeCommand(...)
+        ),
+    )
+
 ```
 
 Роутер подключается в `setup_router()` в `app/consumers.py`.
@@ -983,12 +982,11 @@ await mail_service.queue(template=template, email_data=email_data)  # через
 
 **Используется:** [SeaweedFS](https://github.com/seaweedfs/seaweedfs) (S3-compatible) + [aioboto3](https://github.com/terricain/aioboto3)
 
-`StorageService` (`app/core/services/storage/service.py`) — абстракция, реализаций две:
+`StorageService` (`app/core/services/storage/service.py`) — абстракция:
 
 | Реализация | Пакет | Статус |
 |---|---|---|
 | `AioBotoStorageService` | `app/core/services/storage/aioboto/` | активная, полностью асинхронная (aiobotocore) |
-| `MinioStorageService` | `app/core/services/storage/aminio/` | legacy, оставлена для справки и не подключена в DI |
 
 Клиентов два: `client` ходит на внутренний адрес (`STORAGE_HOST:STORAGE_PORT`), `public_client` подписывает
 presigned-ссылки адресом `STORAGE_PUBLIC_URL`, который резолвят клиенты. Адресация — path-style,
@@ -1042,11 +1040,6 @@ def bucket_policy(self) -> dict[str, Policy]:
 `AioBotoStorageService.ensure_buckets()` создаёт недостающие бакеты и применяет политики:
 анонимный доступ к SeaweedFS решается именно bucket policy, отдельной `anonymous`-identity
 в `infra/seaweedfs/entrypoint.sh` нет.
-
-Публичный (`Policy.GET`) сейчас только `chat-avatars` — аватары групп и каналов. Все остальные
-бакеты приватны (`Policy.NONE`), включая аватары профиля (`profiles`) и `pending-avatar`:
-ссылки на них подписываются на чтении — `ProfileAvatarUrlService` в модуле `profiles`,
-`MessageService.image_urls` в модуле `chats`, подписи кешируются в Redis.
 
 Медиа-файлы дополнительно проходят через `MediaProbeService` (`app/core/services/media`, реализация на `ffprobe`) — он определяет реальный тип/длительность/размеры до сохранения.
 
@@ -1452,9 +1445,9 @@ router = KafkaRouter()
 async def on_profile_updated(
     event: TypedEventDTO[ProfilePayload],
     mediator: FromDishka[BaseMediator],
-    idempotency_guard: FromDishka[EventIdempotencyGuard],
+    idempotency: FromDishka[EventIdempotencyGuard],
 ) -> None:
-    if not await idempotency_guard.try_acquire(
+    await idempotency_guard.(
         group=article_config.PROFILE_GROUP_ID, event_id=event.event_id
     ):
         return

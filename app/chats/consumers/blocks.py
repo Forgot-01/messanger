@@ -29,28 +29,21 @@ class UserBlockPayload(BaseModel):
 async def project_user_block(
     event: DictEventDTO,
     mediator: FromDishka[BaseMediator],
-    idempotency_guard: FromDishka[EventIdempotencyGuard],
+    idempotency: FromDishka[EventIdempotencyGuard],
 ) -> None:
     blocked = BLOCK_EVENT_STATES.get(event.event_name)
     if blocked is None:
         return
 
-    if not await idempotency_guard.try_acquire(
-        group=chat_config.BLOCK_PROJECTION_GROUP_ID, event_id=event.event_id
-    ):
-        return
-
     payload = UserBlockPayload.model_validate(event.payload)
-    try:
-        await mediator.handle_command(
+    await idempotency.execute(
+        group=chat_config.BLOCK_PROJECTION_GROUP_ID,
+        event_id=event.event_id,
+        callback=lambda: mediator.handle_command(
             ApplyUserBlockCommand(
                 owner_id=payload.owner_id,
                 target_id=payload.target_id,
                 blocked=blocked,
             )
-        )
-    except Exception:
-        await idempotency_guard.release(
-            group=chat_config.BLOCK_PROJECTION_GROUP_ID, event_id=event.event_id
-        )
-        raise
+        ),
+    )

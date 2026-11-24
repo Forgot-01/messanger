@@ -1,5 +1,5 @@
-from dishka import AsyncContainer
 import pytest
+from dishka import AsyncContainer
 
 from app.auth.commands.permissions.delete import DeletePermissionCommand, DeletePermissionCommandHandler
 from app.auth.exceptions import ProtectedPermissionError

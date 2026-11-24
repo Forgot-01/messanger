@@ -1,5 +1,5 @@
-from dishka import AsyncContainer
 import pytest
+from dishka import AsyncContainer
 
 from app.auth.commands.roles.create import CreateRoleCommand, CreateRoleCommandHandler
 from app.auth.exceptions import DuplicateRoleError, NotFoundPermissionsError

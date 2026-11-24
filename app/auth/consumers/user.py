@@ -26,24 +26,15 @@ class CreatedUserPayload(BaseModel):
 async def send_verify_on_user_created(
     event: TypedEventDTO[CreatedUserPayload],
     mediator: FromDishka[BaseMediator],
-    idempotency_guard: FromDishka[EventIdempotencyGuard],
+    idempotency: FromDishka[EventIdempotencyGuard],
 ) -> None:
-    if not await idempotency_guard.try_acquire(
-        group=auth_config.SEND_VERIFY_GROUP_ID, event_id=event.event_id
-    ):
-        return
-
-    try:
-        await mediator.handle_command(
-            SendVerifyCommand(
-                email=event.payload.email,
-            )
-        )
-    except Exception:
-        await idempotency_guard.release(
-            group=auth_config.SEND_VERIFY_GROUP_ID, event_id=event.event_id
-        )
-        raise
+    await idempotency.execute(
+        group=auth_config.SEND_VERIFY_GROUP_ID,
+        event_id=event.event_id,
+        callback=lambda: mediator.handle_command(
+            SendVerifyCommand(email=event.payload.email)
+        ),
+    )
 
 
 @subscriber

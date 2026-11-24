@@ -9,26 +9,3 @@ from app.auth.models.session import Session
 from app.auth.models.user import User, UserPermissions
 from app.auth.models.permission import Permission, RolePermissions
 from app.auth.models.role import Role, UserRoles
-
-from app.profiles.models.profile_link import ProfileLink
-from app.profiles.models.profile import Profile
-from app.profiles.models.photo import ProfilePhoto
-from app.profiles.models.contacts import BlockedUser, PendingContact, UserContact, UserIdentifier
-from app.profiles.models.privacy import ProfilePrivacy, ProfilePrivacyException
-
-from app.chats.models.attachment import MessageAttachment
-from app.chats.models.chat import Chat
-from app.chats.models.message import Message
-from app.chats.models.chat_roles import ChatRole
-from app.chats.models.chat_members import ChatMember
-from app.chats.models.read_receipts import ReadReceipt, ReadReceiptMark
-from app.chats.models.pinned_message import ChatPinnedMessage
-from app.chats.models.profile import ChatUserProfile
-from app.chats.models.reaction import MessageReaction, MessageReactionCounter
-from app.chats.models.blocks import ChatUserBlock
-from app.chats.models.privacy import ChatUserContact, ChatUserPrivacyException
-from app.chats.models.invite import ChatInviteLink
-from app.chats.models.join_request import ChatJoinRequest
-
-from app.notifications.models.device import UserDeviceToken
-from app.notifications.models.notification import Notification

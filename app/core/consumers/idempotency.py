@@ -19,3 +19,20 @@ class EventIdempotencyGuard:
     async def release(self, group: str, event_id: UUID) -> None:
         key = _PROCESSED_KEY_TEMPLATE.format(group=group, event_id=event_id)
         await self.redis.delete(key)
+
+    async def execute(
+        self,
+        group: str,
+        event_id: UUID,
+        callback,
+    ) -> None:
+        key = _PROCESSED_KEY_TEMPLATE.format(group=group, event_id=event_id)
+
+        if not await self.redis.set(key, "1", ex=self.ttl_seconds, nx=True):
+            return
+
+        try:
+            await callback()
+        except Exception:
+            await self.redis.delete(key)
+            raise
