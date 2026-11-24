@@ -41,7 +41,7 @@ class TestChangeUsernameCommand:
         get_user_jwt_data,
     ) -> None:
         user, user_jwt_data = await get_user_jwt_data(username="base")
-        forgot_user = await create_user(username="forgot", email="forgot@gmail.com")
+        _forgot_user = await create_user(username="forgot", email="forgot@gmail.com")
 
         with pytest.raises(UsernameTakenError) as error:
             await handler.handle(

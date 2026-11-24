@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from app.core.exceptions import IdempotencyConflictError
-from app.core.services.idempotency import IdempotencyStore
+from app.core.api.idempotency import IdempotencyStore
 
 
 class Result(BaseModel):

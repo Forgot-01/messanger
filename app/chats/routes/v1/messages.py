@@ -24,10 +24,10 @@ from app.chats.schemas.rest import (
     MarkReadRequest,
     SendMessageRequest,
 )
+from app.core.api.idempotency import IdempotencyStore
 from app.core.api.rate_limiter import ConfigurableRateLimiter
 from app.core.mediators.base import BaseMediator
 from app.core.services.auth.depends import CurrentUserJWTData
-from app.core.services.idempotency import IdempotencyStore
 
 router = APIRouter(route_class=DishkaRoute)
 
