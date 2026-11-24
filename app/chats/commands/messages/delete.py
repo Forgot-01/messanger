@@ -46,7 +46,7 @@ class DeleteMessageCommandHandler(BaseCommandHandler[DeleteMessageCommand, None]
 
         if (
             message.author_id != user_id and
-            not await self.chat_access_service.has_permissions(
+            not self.chat_access_service.has_permissions(
                 user_jwt_data=command.user_jwt_data,
                 member=member,
                 must_permissions={"message:delete"}

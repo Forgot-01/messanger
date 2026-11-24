@@ -149,6 +149,8 @@ class AppConfig(BaseConfig):
     WS_GATEWAY_STREAM_CLAIM_INTERVAL: int = 30
     WS_GATEWAY_STREAM_METRICS_INTERVAL: int = 15
 
+    MAX_SIDE: int = 100
+
     @model_validator(mode="after")
     def validate_production_required_settings(self) -> AppConfig:
         if self.ENVIRONMENT != "production":

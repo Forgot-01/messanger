@@ -55,8 +55,7 @@ class SendMessageCommandHandler(BaseCommandHandler[SendMessageCommand, MessageDT
             chat_id=command.chat_id, member_id=user_id
         )
 
-
-        if not await self.access_service.can_send_message(
+        if not self.access_service.can_send_message(
             user_jwt_data=command.user_jwt_data,
             chat=chat,
             member=member,

@@ -40,7 +40,7 @@ class DeclineJoinRequestsCommandHandler(
         chat, requester = await self.chat_repository.get_chat_and_member(
             chat_id=command.chat_id, member_id=requester_id
         )
-        if not await self.access_service.has_permissions(
+        if not self.access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=requester,
             must_permissions={"member:invite"},

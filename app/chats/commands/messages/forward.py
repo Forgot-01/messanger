@@ -60,7 +60,7 @@ class ForwardMessageCommandHandler(BaseCommandHandler[ForwardMessageCommand, Mes
         if source_msg is None or source_msg.chat_id != command.source_chat_id or source_msg.is_deleted:
             raise NotFoundMessageError(message_id=str(command.source_message_id))
 
-        if not await self.chat_access_service.has_permissions(
+        if not self.chat_access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=source_member,
             must_permissions={"message:read"},
@@ -71,7 +71,7 @@ class ForwardMessageCommandHandler(BaseCommandHandler[ForwardMessageCommand, Mes
             chat_id=command.target_chat_id, member_id=user_id
         )
 
-        if not await self.chat_access_service.can_send_message(
+        if not self.chat_access_service.can_send_message(
             user_jwt_data=command.user_jwt_data,
             chat=target_chat,
             member=target_member,

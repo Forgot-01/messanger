@@ -36,7 +36,7 @@ class ConfirmChatAvatarUploadCommandHandler(BaseCommandHandler[ConfirmChatAvatar
             raise InvalidUploadTokenError(token=str(command.upload_token))
 
         member = await self.chat_repository.get_member_chat(command.chat_id, user_id)
-        if not await self.access_service.has_permissions(
+        if not self.access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=member,
             must_permissions={"chat:update"},

@@ -12,7 +12,6 @@ from app.chats.commands.messages.modify import EditMessageCommand
 from app.chats.commands.messages.send import SendMessageCommand
 from app.chats.config import chat_config
 from app.chats.dtos.messages import ForwardedMessagesDTO, MessageDTO, MessageReadsDTO, MessagesDTO
-from app.chats.keys import ChatIdempotencyScope
 from app.chats.models.message import MessageType
 from app.chats.queries.messages.get_context import GetMessageContextQuery
 from app.chats.queries.messages.get_detail import GetMessageDetailQuery
@@ -94,7 +93,7 @@ async def send_message(
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> MessageDTO:
     return await idempotency.run(
-        scope=ChatIdempotencyScope.SEND_MESSAGE,
+        scope="send",
         key=idempotency_key,
         owner=(user_jwt_data.id, chat_id),
         model=MessageDTO,
@@ -204,7 +203,7 @@ async def forward_message(
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> MessageDTO:
     return await idempotency.run(
-        scope=ChatIdempotencyScope.FORWARD_MESSAGE,
+        scope="forward",
         key=idempotency_key,
         owner=(user_jwt_data.id, chat_id),
         model=MessageDTO,
@@ -240,7 +239,7 @@ async def forward_messages(
     idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> ForwardedMessagesDTO:
     return await idempotency.run(
-        scope=ChatIdempotencyScope.FORWARD_MESSAGES,
+        scope="forward_many",
         key=idempotency_key,
         owner=(user_jwt_data.id, chat_id),
         model=ForwardedMessagesDTO,

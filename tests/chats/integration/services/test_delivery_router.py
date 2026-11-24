@@ -55,7 +55,7 @@ def delivery_router(
         chat_repository=chat_repository,
         message_repository=message_repository,
         message_service=message_service,
-        coalesce_queue=coalesce_queue,
+        reaction_coalesce_queue=coalesce_queue,
         broker=broker,
     )
 

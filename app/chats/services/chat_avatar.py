@@ -19,8 +19,6 @@ from app.core.services.storage.service import StorageService
 
 logger = logging.getLogger(__name__)
 
-MAGIC_HEADER_BYTES = 2048
-
 
 @dataclass(frozen=True)
 class RenderedAvatar:
@@ -48,7 +46,7 @@ class ChatAvatarService:
             stat=stat,
         )
 
-        mime_type = magic.from_buffer(data[:MAGIC_HEADER_BYTES], mime=True)
+        mime_type = magic.from_buffer(data[:chat_config.MAGIC_HEADER_BYTES], mime=True)
         if mime_type not in chat_config.CHAT_AVATAR_ALLOWED_MIMES:
             raise ChatAvatarValidationError(reason="mime_type", mime_type=mime_type)
 

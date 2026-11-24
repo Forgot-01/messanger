@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.chats.exceptions import NotFoundChatError
+from app.chats.exceptions import AccessDeniedChatError, NotFoundChatError
 from app.chats.repositories.chat import ChatRepository
 from app.chats.repositories.pinned_message import ChatPinnedMessageRepository
 from app.chats.services.access import ChatAccessService
@@ -38,7 +38,8 @@ class UnpinMessagesCommandHandler(BaseCommandHandler[UnpinMessagesCommand, None]
             raise NotFoundChatError(chat_id=str(command.chat_id))
 
         member = await self.chat_repository.get_member_chat(command.chat_id, user_id)
-        await self.chat_access_service.ensure_can_pin(command.user_jwt_data, member, command.chat_id)
+        if not self.chat_access_service.has_permissions(command.user_jwt_data, member, {"message:pin"}):
+            raise AccessDeniedChatError(chat_id=str(chat.id), requester_id=user_id)
 
         unpin_all = command.message_id is None
         if command.message_id is None:

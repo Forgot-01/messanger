@@ -11,9 +11,6 @@ from app.chats.models.chat import ChatFanoutStrategy
 from app.chats.schemas.ws import WSEventType
 from app.core.consumers.event import DictEventDTO
 
-REACTION_EVENT_NAME = "chats.message.reaction_updated"
-CHAT_DELETED_EVENT_NAME = "chats.chat.deleted"
-
 CHAT_EVENT_TO_WS_TYPE: dict[str, str] = {
     "chats.message.sent": WSEventType.NEW_MESSAGE.value,
     "chats.message.modified": WSEventType.MESSAGE_EDITED.value,
@@ -33,8 +30,8 @@ CHAT_EVENT_TO_WS_TYPE: dict[str, str] = {
     "chats.chat.created": WSEventType.CHAT_CREATED.value,
     "chats.chat.updated": WSEventType.CHAT_UPDATED.value,
     "chats.chat.ownership_transferred": WSEventType.CHAT_OWNERSHIP_TRANSFERRED.value,
-    CHAT_DELETED_EVENT_NAME: WSEventType.CHAT_DELETED.value,
-    REACTION_EVENT_NAME: WSEventType.REACTION_UPDATED.value,
+    "chats.chat.deleted": WSEventType.CHAT_DELETED.value,
+    "chats.message.reaction_updated": WSEventType.REACTION_UPDATED.value,
 }
 
 MESSAGE_HYDRATED_EVENTS: frozenset[str] = frozenset({

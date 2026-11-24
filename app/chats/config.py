@@ -87,6 +87,7 @@ class ChatConfig(BaseConfig):
     JOIN_REQUEST_MODERATE_RATE_LIMIT_TIMES: int = 60
     JOIN_REQUEST_MODERATE_RATE_LIMIT_SECONDS: int = 60
     JOIN_REQUEST_FANOUT_LIMIT: int = 200
+    JOIN_REQUEST_PERMISSION: str = "member:invite"
 
     MAX_SLOW_MODE_SECONDS: int = 86_400
     CHAT_STAFF_MIN_ROLE_LEVEL: int = 80
@@ -240,5 +241,9 @@ class ChatConfig(BaseConfig):
 
     PRIVACY_PROJECTION_GROUP_ID: str = "chat_privacy_projection"
     PRIVACY_UPDATED_EVENT: str = "profiles.privacy.updated"
+
+    MAGIC_HEADER_BYTES: int = 2048
+
+    OFFLINE_SIGNAL_EVENT_NAMES: frozenset[str] = frozenset({"chats.message.sent"})
 
 chat_config = ChatConfig()

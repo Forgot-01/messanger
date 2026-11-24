@@ -42,7 +42,7 @@ class AddMemberCommandHandler(BaseCommandHandler[AddMemberCommand, None]):
             chat_id=command.chat_id, member_id=requester_id
         )
 
-        if not await self.chat_access_service.has_permissions(
+        if not self.chat_access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=requester,
             must_permissions={"member:invite"}

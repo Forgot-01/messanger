@@ -57,7 +57,7 @@ class ForwardMessagesCommandHandler(BaseCommandHandler[ForwardMessagesCommand, F
         if source_member is None or source_member.is_banned:
             raise NotChatMemberError(chat_id=str(command.source_chat_id), user_id=user_id)
 
-        if not await self.chat_access_service.has_permissions(
+        if not self.chat_access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=source_member,
             must_permissions={"message:read"},
@@ -75,7 +75,7 @@ class ForwardMessagesCommandHandler(BaseCommandHandler[ForwardMessagesCommand, F
         target_chat, target_member = await self.chat_repository.get_chat_and_member(
             chat_id=command.target_chat_id, member_id=user_id
         )
-        if not await self.chat_access_service.can_send_message(
+        if not self.chat_access_service.can_send_message(
             user_jwt_data=command.user_jwt_data,
             chat=target_chat,
             member=target_member,

@@ -182,7 +182,7 @@ class MutedChatMemberEvent(BaseEvent):
 @dataclass(frozen=True)
 class LeftChatMemberEvent(BaseEvent):
     chat_id: str
-    user_id: int
+    target_user_id: int
 
     __event_name__ = "chats.member.left"
 
@@ -625,7 +625,7 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
 
         self.register_event(LeftChatMemberEvent(
             chat_id=str(self.id),
-            user_id=user_id,
+            target_user_id=user_id,
         ))
 
     def kick_member(self, target: int, requester_id: int) -> None:

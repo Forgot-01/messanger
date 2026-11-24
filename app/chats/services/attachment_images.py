@@ -8,9 +8,9 @@ import pyvips  # type: ignore[import-untyped]
 from app.chats.config import chat_config
 from app.chats.exceptions import AttachmentMediaValidationError, AttachmentRejectionReason
 from app.chats.models.attachment import MessageAttachment
+from app.core.configs.app import app_config
 from app.core.services.media.jpeg import strip_jpeg_metadata
 from app.core.services.media.thumbhash import (
-    MAX_SIDE as THUMBHASH_MAX_SIDE,
     encode_thumbhash,
 )
 
@@ -176,7 +176,7 @@ class AttachmentImageRenderer:
 
     @staticmethod
     def _thumbhash(image: Any) -> str:
-        small = image.thumbnail_image(THUMBHASH_MAX_SIDE, height=THUMBHASH_MAX_SIDE)
+        small = image.thumbnail_image(app_config.MAX_SIDE, height=app_config.MAX_SIDE)
         if small.interpretation != "srgb":
             small = small.colourspace("srgb")
         if small.format != "uchar":

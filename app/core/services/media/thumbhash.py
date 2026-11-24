@@ -2,7 +2,7 @@ import base64
 import math
 from collections.abc import Sequence
 
-MAX_SIDE = 100
+from app.core.configs.app import app_config
 
 
 def _round(value: float) -> int:
@@ -39,8 +39,8 @@ def _encode_channel(
 def rgba_to_thumbhash(width: int, height: int, rgba: bytes) -> bytes:
     if width <= 0 or height <= 0:
         raise ValueError("image must not be empty")
-    if width > MAX_SIDE or height > MAX_SIDE:
-        raise ValueError(f"{width}x{height} doesn't fit in {MAX_SIDE}x{MAX_SIDE}")
+    if width > app_config.MAX_SIDE or height > app_config.MAX_SIDE:
+        raise ValueError(f"{width}x{height} doesn't fit in {app_config.MAX_SIDE}x{app_config.MAX_SIDE}")
     if len(rgba) != width * height * 4:
         raise ValueError("rgba buffer does not match the image size")
 

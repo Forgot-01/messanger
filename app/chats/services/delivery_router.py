@@ -9,12 +9,10 @@ from redis.asyncio import Redis
 
 from app.chats.config import chat_config
 from app.chats.dtos.delivery import (
-    CHAT_DELETED_EVENT_NAME,
     CHAT_EVENT_TO_WS_TYPE,
     JOIN_REQUEST_APPLICANT_EVENTS,
     JOIN_REQUEST_STAFF_EVENTS,
     MESSAGE_HYDRATED_EVENTS,
-    REACTION_EVENT_NAME,
     MessagePayloadWS,
     WsEvent,
     build_reaction_ws_dto,
@@ -26,7 +24,8 @@ from app.chats.metrics import (
     DELIVERY_ROUTER_OFFLINE_SIGNALS,
     DELIVERY_ROUTER_STREAM_ENTRIES,
 )
-from app.chats.models.chat import ChatFanoutStrategy
+from app.chats.models.chat import ChatFanoutStrategy, DeletedChatEvent
+from app.chats.models.reaction import ReactionUpdatedEvent
 from app.chats.repositories.chat import ChatRepository, DeliveryMember
 from app.chats.repositories.message import MessageRepository
 from app.chats.schemas.ws import WSEventType
@@ -42,17 +41,6 @@ from app.core.websocket.keys import WebsocketKeys
 RouteMap = dict[str, set[int]]
 ActiveSubscriptionRoute = tuple[int, str, str, str]
 
-OFFLINE_SIGNAL_EVENT_NAMES: frozenset[str] = frozenset({"chats.message.sent"})
-
-# Заявки видят те, кто может их решить, — то же право, что у приглашений и ссылок.
-JOIN_REQUEST_PERMISSION = "member:invite"
-
-MEMBER_REMOVED_EVENT_FIELDS: dict[str, str] = {
-    "chats.member.kicked": "target_user_id",
-    "chats.member.banned": "target_user_id",
-    "chats.member.left": "user_id",
-}
-
 
 @dataclass
 class ChatDeliveryRouter:
@@ -60,7 +48,7 @@ class ChatDeliveryRouter:
     chat_repository: ChatRepository
     message_repository: MessageRepository
     message_service: MessageService
-    coalesce_queue: ReactionCoalesceQueue
+    reaction_coalesce_queue: ReactionCoalesceQueue
     broker: BaseMessageBroker
 
     async def route_broker_message(self, event: DictEventDTO) -> None:
@@ -68,13 +56,13 @@ class ChatDeliveryRouter:
         if ws_type is None:
             return
 
-        if event.event_name == REACTION_EVENT_NAME:
-            await self.coalesce_queue.enqueue(event)
+        if event.event_name == ReactionUpdatedEvent.get_name():
+            await self.reaction_coalesce_queue.enqueue(event)
             return
 
         fanout_strategy = await self.chat_repository.get_fanout_strategy(
             UUID(event.payload["chat_id"]),
-            include_deleted=event.event_name == CHAT_DELETED_EVENT_NAME,
+            include_deleted=(event.event_name == DeletedChatEvent.get_name()),
         )
         if fanout_strategy is None:
             return
@@ -174,7 +162,7 @@ class ChatDeliveryRouter:
         expires_at: str | None = None,
     ) -> None:
         with_offline_signal = (
-            ws_event.event_name in OFFLINE_SIGNAL_EVENT_NAMES
+            ws_event.event_name in chat_config.OFFLINE_SIGNAL_EVENT_NAMES
             and ws_event.delta.get("notify", True) is not False
         )
         offline_user_ids: list[int] = []
@@ -237,7 +225,7 @@ class ChatDeliveryRouter:
         recipients = set(
             await self.chat_repository.user_ids_with_permission(
                 chat_id=ws_event.chat_id,
-                permission=JOIN_REQUEST_PERMISSION,
+                permission=chat_config.JOIN_REQUEST_PERMISSION,
                 limit=chat_config.JOIN_REQUEST_FANOUT_LIMIT,
             )
         )
@@ -258,14 +246,10 @@ class ChatDeliveryRouter:
         ws_event: WsEvent,
         payload: dict[str, Any],
     ) -> None:
-        field = MEMBER_REMOVED_EVENT_FIELDS.get(ws_event.event_name)
-        if field is None:
-            return
-
         if ws_event.event_name == "chats.member.banned" and not ws_event.delta.get("ban"):
             return
 
-        target_user_id = ws_event.delta.get(field)
+        target_user_id = ws_event.delta.get("target_user_id")
         if target_user_id is None:
             return
 

@@ -63,7 +63,7 @@ class RequestAttachmentUploadCommandHandler(
         if member is None:
             raise NotChatMemberError(chat_id=str(command.chat_id), user_id=user_id)
 
-        if not await self.chat_access_service.can_send_message(
+        if not self.chat_access_service.can_send_message(
             user_jwt_data=command.user_jwt_data,
             chat=chat,
             member=member,

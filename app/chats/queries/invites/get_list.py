@@ -29,7 +29,7 @@ class GetInviteLinksQueryHandler(BaseQueryHandler[GetInviteLinksQuery, ListInvit
         user_id = int(query.user_jwt_data.id)
 
         member = await self.chat_repository.get_member_chat(query.chat_id, user_id)
-        if not await self.access_service.has_permissions(
+        if not self.access_service.has_permissions(
             user_jwt_data=query.user_jwt_data,
             member=member,
             must_permissions={"member:invite"},

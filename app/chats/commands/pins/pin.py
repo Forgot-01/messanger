@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.chats.dtos.messages import MessageDTO
 from app.chats.dtos.pins import PinnedMessageDTO
-from app.chats.exceptions import NotFoundChatError, NotFoundMessageError
+from app.chats.exceptions import AccessDeniedChatError, NotFoundChatError, NotFoundMessageError
 from app.chats.models.message import Message, SystemMessageAction
 from app.chats.models.pinned_message import ChatPinnedMessage
 from app.chats.repositories.chat import ChatRepository
@@ -47,7 +47,8 @@ class PinMessageCommandHandler(BaseCommandHandler[PinMessageCommand, PinnedMessa
             raise NotFoundChatError(chat_id=str(command.chat_id))
 
         member = await self.chat_repository.get_member_chat(command.chat_id, user_id)
-        await self.chat_access_service.ensure_can_pin(command.user_jwt_data, member, command.chat_id)
+        if not self.chat_access_service.has_permissions(command.user_jwt_data, member, {"message:pin"}):
+            raise AccessDeniedChatError(chat_id=str(chat.id), requester_id=user_id)
 
         message = await self.message_repository.get_by_id(command.message_id, with_attachment=True)
         if message is None or message.chat_id != command.chat_id:

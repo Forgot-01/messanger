@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from app.chats.exceptions import AccessDeniedChatError, InvalidChatRoleError, NotChatMemberError
+from app.chats.exceptions import AccessDeniedChatError, InvalidChatRoleError
 from app.chats.models.chat import Chat
 from app.chats.models.chat_members import ChatMember
 from app.chats.models.chat_roles import chat_role_level
@@ -13,16 +13,13 @@ from app.core.services.auth.rbac import RBACManagerInterface
 class ChatAccessService:
     rbac_manager: RBACManagerInterface
 
-    def _has_global_chat_admin(self, user_jwt_data: UserJWTData) -> bool:
-        return self.rbac_manager.check_permission(user_jwt_data, {"chat:update"})
-
-    async def has_permissions(
+    def has_permissions(
         self,
         user_jwt_data: UserJWTData,
         member: ChatMember | None,
         must_permissions: set[str]
     ) -> bool:
-        if self._has_global_chat_admin(user_jwt_data):
+        if self.rbac_manager.check_permission(user_jwt_data, {"chat:update"}):
             return True
 
         if member is None or member.is_banned:
@@ -34,27 +31,13 @@ class ChatAccessService:
         member_permissions = member.effective_permissions()
         return all(member_permissions.get(perm, False) for perm in must_permissions)
 
-    async def ensure_can_pin(
-        self,
-        user_jwt_data: UserJWTData,
-        member: ChatMember | None,
-        chat_id: UUID,
-    ) -> None:
-        if await self.has_permissions(user_jwt_data, member, {"message:pin"}):
-            return
-
-        user_id = int(user_jwt_data.id)
-        if member is None or member.is_banned:
-            raise NotChatMemberError(chat_id=str(chat_id), user_id=user_id)
-        raise AccessDeniedChatError(chat_id=str(chat_id), requester_id=user_id)
-
-    async def can_send_message(
+    def can_send_message(
         self,
         user_jwt_data: UserJWTData,
         chat: Chat,
         member: ChatMember | None,
     ) -> bool:
-        if self._has_global_chat_admin(user_jwt_data):
+        if self.rbac_manager.check_permission(user_jwt_data, {"chat:update"}):
             return True
 
         return self.member_can_send(chat, member)
@@ -87,7 +70,7 @@ class ChatAccessService:
         chat: Chat,
         requester: ChatMember | None,
     ) -> bool:
-        if self._has_global_chat_admin(user_jwt_data):
+        if self.rbac_manager.check_permission(user_jwt_data, {"chat:update"}):
             return True
 
         return (
@@ -112,7 +95,7 @@ class ChatAccessService:
         if role_level is None:
             raise InvalidChatRoleError(role_id=role_id)
 
-        if self._has_global_chat_admin(user_jwt_data):
+        if self.rbac_manager.check_permission(user_jwt_data, {"chat:update"}):
             return
 
         if requester is None or requester.is_banned or role_level >= requester.role.level:
@@ -120,14 +103,14 @@ class ChatAccessService:
                 chat_id=str(chat_id), requester_id=int(user_jwt_data.id)
             )
 
-    async def update_member(
+    def update_member(
         self,
         user_jwt_data: UserJWTData,
         requester: ChatMember | None,
         target: ChatMember,
         must_permissions: set[str]
     ) -> bool:
-        if self._has_global_chat_admin(user_jwt_data):
+        if self.rbac_manager.check_permission(user_jwt_data, {"chat:update"}):
             return True
 
         if requester is None or requester.is_banned or requester.id == target.id:

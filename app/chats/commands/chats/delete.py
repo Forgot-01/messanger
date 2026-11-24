@@ -34,7 +34,7 @@ class DeleteChatCommandHandler(BaseCommandHandler[DeleteChatCommand, None]):
             chat_id=command.chat_id, member_id=requester_id
         )
 
-        if not await self.access_service.has_permissions(
+        if not self.access_service.has_permissions(
             user_jwt_data=command.user_jwt_data,
             member=member,
             must_permissions={"chat:delete"},
