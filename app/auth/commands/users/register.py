@@ -60,7 +60,7 @@ class RegisterCommandHandler(BaseCommandHandler[RegisterCommand, UserDTO]):
         user = User.create(
             email=command.email,
             username=command.username,
-            password_hash=self.hash_service.hash_password(command.password),
+            password_hash=await self.hash_service.hash_password(command.password),
             roles={role }
         )
         await self.user_repository.create(user)

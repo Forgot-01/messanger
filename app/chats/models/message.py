@@ -1,8 +1,7 @@
-import re
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import StrEnum
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 from uuid import UUID, uuid7
 
 from sqlalchemy import (
@@ -13,8 +12,10 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     String,
+    TypeDecorator,
     text,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.chats.config import chat_config
@@ -28,16 +29,10 @@ from app.chats.models.attachment import AttachmentStatus, AttachmentType, Messag
 from app.chats.models.profile import ChatUserProfile
 from app.core.db.base_model import BaseModel, DateMixin
 from app.core.events.event import BaseEvent
+from app.core.utils import contains_link
 
 if TYPE_CHECKING:
     from app.chats.models.chat import Chat
-
-
-LINK_PATTERN = re.compile(r"(?:https?://|www\.)[^\s<>\"']", re.IGNORECASE)
-
-
-def contains_link(content: str | None) -> bool:
-    return content is not None and LINK_PATTERN.search(content) is not None
 
 
 class MessageType(StrEnum):
@@ -152,6 +147,153 @@ class UnpinnedMessagesEvent(BaseEvent):
         return str(self.chat_id)
 
 
+class MessageBlockType(StrEnum):
+    BOLD = "bold"
+    ITALIC = "italic"
+    UNDERLINE = "underline"
+    STRIKETHROUGH = "strikethrough"
+    CODE = "code"
+    PRE = "pre"
+    TEXT_LINK = "text_link"
+    URL = "url"
+    SPOILER = "spoiler"
+    MENTION = "mention"
+    CUSTOM_EMOJI = "custom_emoji"
+
+
+@dataclass(frozen=True, slots=True)
+class MessageBlock:
+    offset: int
+    length: int
+
+
+@dataclass(frozen=True, slots=True)
+class BoldBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class ItalicBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class UnderlineBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class StrikethroughBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class CodeBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class PreBlock(MessageBlock):
+    program_language: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class TextLinkBlock(MessageBlock):
+    url: str
+
+
+@dataclass(frozen=True, slots=True)
+class UrlBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class SpoilerBlock(MessageBlock):
+    pass
+
+
+@dataclass(frozen=True, slots=True)
+class MentionBlock(MessageBlock):
+    username: str
+
+
+@dataclass(frozen=True, slots=True)
+class CustomEmojiBlock(MessageBlock):
+    emoji_id: str
+
+
+MESSAGE_BLOCK_CLASSES: dict[MessageBlockType, type[MessageBlock]] = {
+    MessageBlockType.BOLD: BoldBlock,
+    MessageBlockType.ITALIC: ItalicBlock,
+    MessageBlockType.UNDERLINE: UnderlineBlock,
+    MessageBlockType.STRIKETHROUGH: StrikethroughBlock,
+    MessageBlockType.CODE: CodeBlock,
+    MessageBlockType.PRE: PreBlock,
+    MessageBlockType.TEXT_LINK: TextLinkBlock,
+    MessageBlockType.URL: UrlBlock,
+    MessageBlockType.SPOILER: SpoilerBlock,
+    MessageBlockType.MENTION: MentionBlock,
+    MessageBlockType.CUSTOM_EMOJI: CustomEmojiBlock,
+}
+
+
+class MessageBlocksType(TypeDecorator):
+    impl = JSONB
+    cache_ok = True
+
+    def process_bind_param(
+        self,
+        value: list[MessageBlock] | None,
+        _dialect: Any,
+    ) -> list[dict[str, Any]]:
+        if value is None:
+            return []
+
+        result = []
+
+        for block in value:
+            block_type = type(block)
+
+            block_name = next(
+                (
+                    name
+                    for name, cls in MESSAGE_BLOCK_CLASSES.items()
+                    if cls is block_type
+                ),
+                None,
+            )
+
+            if block_name is None:
+                raise ValueError(f"Unknown message block: {block_type}")
+
+            result.append({
+                "type": block_name.value,
+                **asdict(block),
+            })
+
+        return result
+
+    def process_result_value(
+        self,
+        value: list[dict[str, Any]] | None,
+        _dialect: Any,
+    ) -> list[MessageBlock]:
+        if value is None:
+            return []
+
+        result = []
+
+        for item in value:
+            item = item.copy()
+
+            block_type = MessageBlockType(item.pop("type"))
+            block_class = MESSAGE_BLOCK_CLASSES[block_type]
+
+            result.append(block_class(**item))
+
+        return result
+
+
 class Message(BaseModel, DateMixin):
     __tablename__ = "messages"
 
@@ -167,6 +309,7 @@ class Message(BaseModel, DateMixin):
         SAEnum(MessageType), default=MessageType.TEXT, nullable=False
     )
     content: Mapped[str | None] = mapped_column(String(chat_config.MAX_MESSAGE_LENGTH))
+    blocks: Mapped[list[MessageBlock]] = mapped_column(MessageBlocksType, nullable=False, default=list)
 
     reply_to_id: Mapped[UUID | None] = mapped_column(
         SAUUID, ForeignKey("messages.id"), nullable=True

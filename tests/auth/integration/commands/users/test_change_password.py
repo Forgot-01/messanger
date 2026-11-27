@@ -39,7 +39,7 @@ class TestChangePasswordCommand:
             )
         )
 
-        assert hash_service.verify_password(new_password, user.password_hash)
+        assert await hash_service.verify_password(new_password, user.password_hash)
         assert await token_blacklist_repository.get_user_blacklist(user.id) != fromtimestamp(float("0"))
 
 

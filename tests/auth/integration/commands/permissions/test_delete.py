@@ -33,7 +33,7 @@ class TestCreateCommand:
 
         permission = await permission_repository.get_permission_by_name("new:permission")
         assert permission is None
-        assert permission_blacklist.get_permission_invalidation_time("new:permission") is not None
+        assert await permission_blacklist.get_permission_invalidation_time("new:permission") is not None
 
     async def test_delete_protected(
         self, handler, get_user_jwt_data, permission_blacklist,
@@ -49,7 +49,7 @@ class TestCreateCommand:
                 )
             )
 
-        assert permission_blacklist.get_permission_invalidation_time("system:manage_settings") is not None
+        assert await permission_blacklist.get_permission_invalidation_time("system:manage_settings") is None
         permission = await permission_repository.get_permission_by_name("system:manage_settings")
         assert permission is not None
 

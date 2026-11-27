@@ -4,8 +4,8 @@ import pytest
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
-from app.core.exceptions import IdempotencyConflictError
 from app.core.api.idempotency import IdempotencyStore
+from app.core.exceptions import IdempotencyConflictError
 
 
 class Result(BaseModel):

@@ -8,6 +8,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 
+from app.core.configs.app import app_config
 from app.core.services.storage.aioboto.client import S3Client
 from app.core.services.storage.dtos import ObjectStat, UploadFile, UploadFilePost, UploadFilePostResponse
 from app.core.services.storage.exceptions import (
@@ -22,9 +23,6 @@ from app.core.utils import now_utc
 
 logger = logging.getLogger(__name__)
 
-DOWNLOAD_CHUNK_SIZE = 256 * 1024
-
-SSE_ALGORITHM = "AES256"
 
 _NOT_FOUND_CODES = frozenset({"NoSuchKey", "NoSuchObject", "NoSuchVersion", "NoSuchBucket", "NotFound", "404"})
 _PRECONDITION_CODES = frozenset({"PreconditionFailed", "412"})
@@ -135,7 +133,7 @@ class AioBotoStorageService(StorageService):
             "Metadata": s3_metadata,
         }
         if self.sse_enabled and is_private:
-            params["ServerSideEncryption"] = SSE_ALGORITHM
+            params["ServerSideEncryption"] = app_config.SSE_ALGORITHM
 
         try:
             await self.client.put_object(**params)
@@ -291,7 +289,7 @@ class AioBotoStorageService(StorageService):
             response = await self.client.get_object(**params)
             stream = response["Body"]
             async with stream:
-                async for chunk in stream.iter_chunks(DOWNLOAD_CHUNK_SIZE):
+                async for chunk in stream.iter_chunks(app_config.DOWNLOAD_CHUNK_SIZE):
                     read += len(chunk)
                     if read > max_bytes:
                         raise ObjectTooLargeError(

@@ -48,6 +48,7 @@ from app.core.events.event import BaseEvent
 
 
 class ChatType(StrEnum):
+    FAVORITES = "favorites"
     DIRECT = "direct"
     GROUP = "group"
     SUPERGROUP = "supergroup"
@@ -61,6 +62,7 @@ class ChatReactionsMode(StrEnum):
 
 
 class ChatFanoutStrategy(StrEnum):
+    NONE = "NONE"
     FANOUT_ON_WRITE = "fanout_on_write"
     ACTIVE_SUBSCRIBERS = "active_subscribers"
     CHANNEL_SUBSCRIBERS = "channel_subscribers"
@@ -264,6 +266,8 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
                 return chat_config.MAX_SUPERGROUP_MEMBERS
             case ChatType.CHANNEL:
                 return chat_config.MAX_CHANNEL_SUBSCRIBERS
+            case ChatType.FAVORITES:
+                return 1
             case _:
                 assert_never(chat_type)
 
@@ -285,6 +289,8 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
             return ChatFanoutStrategy.ACTIVE_SUBSCRIBERS
         if chat_type == ChatType.GROUP and member_count > chat_config.FAN_OUT_WRITE_THRESHOLD:
             return ChatFanoutStrategy.ACTIVE_SUBSCRIBERS
+        if chat_type == ChatType.FAVORITES:
+            return ChatFanoutStrategy.NONE
         return ChatFanoutStrategy.FANOUT_ON_WRITE
 
     @property
@@ -320,6 +326,9 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
         if created_by in members_ids:
             members_ids.remove(created_by)
 
+        if chat_type == ChatType.FAVORITES and len(members_ids) != 0:
+            raise MemberLimitExceededError(limit=1)
+
         if chat_type == ChatType.DIRECT and (len(members_ids) != 1 or created_by == members_ids[0]):
             raise MemberLimitExceededError(limit=2)
 
@@ -354,6 +363,9 @@ class Chat(BaseModel, DateMixin, SoftDeleteMixin):
         if chat_type == ChatType.DIRECT:
             instance.add_member(created_by, ChatRoleId.DIRECT_MEMBER)
             instance.add_member(members_ids[0], ChatRoleId.DIRECT_MEMBER)
+
+        elif chat_type == ChatType.FAVORITES:
+            instance.add_member(created_by, ChatRoleId.OWNER)
 
         elif chat_type in (ChatType.GROUP, ChatType.SUPERGROUP):
             instance.add_member(created_by, ChatRoleId.OWNER)

@@ -64,7 +64,7 @@ class ChatDeliveryRouter:
             UUID(event.payload["chat_id"]),
             include_deleted=(event.event_name == DeletedChatEvent.get_name()),
         )
-        if fanout_strategy is None:
+        if fanout_strategy is None or fanout_strategy == ChatFanoutStrategy.NONE:
             return
 
         ws_event = WsEvent.build(

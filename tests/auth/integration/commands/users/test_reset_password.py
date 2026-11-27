@@ -56,7 +56,7 @@ class TestSendResetPasswordCommand:
 
         user = await user_repository.get_by_id(user_id)
         assert user
-        assert hash_service.verify_password("NewPass1234!", user.password_hash)
+        assert await hash_service.verify_password("NewPass1234!", user.password_hash)
         assert await token_blacklist_repository.get_user_blacklist(user_id) != fromtimestamp(float("0"))
 
         with pytest.raises(InvalidTokenError):

@@ -4,8 +4,8 @@ from contextlib import AsyncExitStack
 from dishka import Provider, Scope, provide
 from redis.asyncio import Redis
 
-from app.core.configs.app import app_config
 from app.core.api.idempotency import IdempotencyStore
+from app.core.configs.app import app_config
 from app.core.services.media.probe.ffprobe import FfprobeMediaProbeService
 from app.core.services.media.service import MediaProbeService
 from app.core.services.storage.aioboto.client import s3_client

@@ -81,6 +81,8 @@ class AppConfig(BaseConfig):
     STORAGE_SECURE: bool = False
     STORAGE_PUBLIC_SECURE: bool = True
     STORAGE_SSE: bool = False
+    SSE_ALGORITHM: str = "AES256"
+    DOWNLOAD_CHUNK_SIZE: int = 256 * 1024
 
     @computed_field # type: ignore[prop-decorator]
     @property

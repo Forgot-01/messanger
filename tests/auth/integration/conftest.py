@@ -54,7 +54,7 @@ def create_user(
         user = User.create(
             email=email,
             username=username,
-            password_hash=hash_service.hash_password(password),
+            password_hash=await hash_service.hash_password(password),
             is_verified=is_verified,
             roles={role},
             permissions=permissions

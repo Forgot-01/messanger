@@ -4,10 +4,10 @@ from dishka.integrations.fastapi import DishkaRoute, FromDishka
 from fastapi import APIRouter, Depends, Header, Query, Response, status
 
 from app.core.api.builder import create_response
+from app.core.api.idempotency import IdempotencyStore
 from app.core.api.rate_limiter import ConfigurableRateLimiter
 from app.core.mediators.base import BaseMediator
 from app.core.services.auth.depends import CurrentUserJWTData
-from app.core.api.idempotency import IdempotencyStore
 from app.core.services.queues.service import QueueService
 from app.profiles.commands.contacts.add import AddContactCommand
 from app.profiles.commands.contacts.block import BlockUserCommand

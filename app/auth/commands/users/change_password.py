@@ -41,12 +41,14 @@ class ChangePasswordCommandHandler(BaseCommandHandler[ChangePasswordCommand, Non
 
         if (
             user.password_hash is None or
-            not self.hash_service.verify_password(command.old_password, user.password_hash) or
+            not await self.hash_service.verify_password(command.old_password, user.password_hash) or
             command.new_password != command.new_password_repeat
         ):
             raise PasswordMismatchError
 
-        user.password_reset(self.hash_service.hash_password(command.new_password))
+        user.password_reset(
+            await self.hash_service.hash_password(command.new_password)
+        )
         await self.token_repository.add_user(user.id, expiration=timedelta(days=auth_config.REFRESH_TOKEN_EXPIRE_DAYS))
 
         await self.event_bus.publish(user.pull_events())

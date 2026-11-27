@@ -50,7 +50,7 @@ class LoginCommandHandler(BaseCommandHandler[LoginCommand, TokenGroup]):
             (user is None) or
             (user.is_deleted) or
             (user.password_hash is None) or
-            (not self.hash_service.verify_password(command.password, user.password_hash))
+            (not await self.hash_service.verify_password(command.password, user.password_hash))
         ):
             raise WrongLoginDataError(username=command.username)
 
